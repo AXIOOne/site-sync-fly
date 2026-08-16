@@ -270,6 +270,10 @@ export function generateInspectionPoints(
     longitude: t.longitude,
     altitude_ft: settings.altitude_ft,
     heading: null,
+    heading_mode: "center" as const,
+    aim_lat: null,
+    aim_lng: null,
+
     gimbal_pitch: settings.gimbal_pitch,
     speed_mph: settings.speed_mph,
     label: t.label,
