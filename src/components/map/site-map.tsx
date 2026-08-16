@@ -59,9 +59,12 @@ export function SiteMap({
   selectedWaypointKey = null,
   editable = false,
   drawMode = false,
+  aimMode = false,
   onMapClick,
   onWaypointClick,
   onWaypointDragEnd,
+  onWaypointHeadingChange,
+  onAimPointPicked,
   fitToWaypoints = false,
 }: SiteMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,6 +72,8 @@ export function SiteMap({
   const glRef = useRef<any>(null);
   const markerRefs = useRef<Map<string, any>>(new Map());
   const aircraftMarkerRef = useRef<any>(null);
+  const aimHandleRef = useRef<any>(null);
+  const aimTargetRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   const { data: tokenInfo, isPending } = useMapboxToken();
@@ -77,6 +82,11 @@ export function SiteMap({
   clickRef.current = onMapClick;
   const drawRef = useRef(drawMode);
   drawRef.current = drawMode;
+  const aimRef = useRef({ aimMode, selectedWaypointKey, onAimPointPicked });
+  aimRef.current = { aimMode, selectedWaypointKey, onAimPointPicked };
+  const headingChangeRef = useRef(onWaypointHeadingChange);
+  headingChangeRef.current = onWaypointHeadingChange;
+
 
   useEffect(() => {
     if (!tokenInfo?.configured || !containerRef.current || mapRef.current) return;
