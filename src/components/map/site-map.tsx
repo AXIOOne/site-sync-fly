@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { LatLng } from "@/lib/geo";
+import { bearing, metersToDegLat, metersToDegLng, type LatLng } from "@/lib/geo";
 import { useMapboxToken } from "@/hooks/useMapboxToken";
 import { cn } from "@/lib/utils";
 
@@ -8,6 +8,10 @@ export interface MapWaypoint {
   sequence: number;
   latitude: number;
   longitude: number;
+  /** Aircraft heading in degrees; renders an aim cone when set. */
+  heading?: number | null;
+  /** Optional aim target the heading was derived from. */
+  aim?: LatLng | null;
 }
 
 export interface SiteMapProps {
@@ -25,13 +29,23 @@ export interface SiteMapProps {
   selectedWaypointKey?: string | null;
   editable?: boolean;
   drawMode?: boolean;
+  /** When true, a map click sets the aim target of the selected waypoint. */
+  aimMode?: boolean;
   onMapClick?: (point: LatLng) => void;
   onWaypointClick?: (key: string) => void;
   onWaypointDragEnd?: (key: string, point: LatLng) => void;
+  /** Fired while/after dragging the aim handle of the selected waypoint. */
+  onWaypointHeadingChange?: (key: string, degrees: number) => void;
+  /** Fired when a map click picks an aim target in aimMode. */
+  onAimPointPicked?: (key: string, point: LatLng) => void;
   fitToWaypoints?: boolean;
 }
 
 const STYLE_SATELLITE = "mapbox://styles/mapbox/satellite-streets-v12";
+/** Ground length of the drawn aim cone, in meters. */
+const CONE_METERS = 55;
+const CONE_HALF_ANGLE = 16;
+
 
 export function SiteMap({
   center,
