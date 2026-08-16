@@ -428,12 +428,23 @@ export function evaluateReadiness(input: ReadinessInput): {
     { key: "weather", label: "Weather reviewed", severity: "review", passed: input.weatherReviewed },
     { key: "airspace", label: "Airspace reviewed", severity: "review", passed: input.airspaceReviewed },
     {
+      key: "headings",
+      label: "Camera orientation set at every capture waypoint",
+      severity: "review",
+      passed: (input.waypointsMissingHeading ?? 0) === 0,
+      detail:
+        (input.waypointsMissingHeading ?? 0) === 0
+          ? "All capture waypoints aimed"
+          : `${input.waypointsMissingHeading} waypoint(s) capture without a heading`,
+    },
+    {
       key: "preflight",
       label: "Preflight completed",
       severity: "review",
       passed: input.preflightCompleted,
     },
   ];
+
   const blocked = checks.some((c) => c.severity === "blocking" && !c.passed);
   const review = checks.some((c) => !c.passed);
   return { state: blocked ? "BLOCKED" : review ? "REVIEW_REQUIRED" : "READY", checks };
