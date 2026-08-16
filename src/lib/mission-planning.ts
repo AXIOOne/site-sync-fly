@@ -18,6 +18,22 @@ export interface DraftAction {
   param_numeric?: number | null;
 }
 
+/**
+ * How the aircraft heading at a waypoint was decided.
+ * - fixed: an explicit bearing the planner set; never recomputed silently
+ * - aim:   computed from the waypoint to a picked target on the map
+ * - center: always faces the site centroid
+ * - path:  follows the route (faces the next waypoint)
+ */
+export type HeadingMode = "fixed" | "aim" | "center" | "path";
+
+export const HEADING_MODE_LABELS: Record<HeadingMode, string> = {
+  fixed: "Fixed bearing",
+  aim: "Aim at target",
+  center: "Face center",
+  path: "Follow path",
+};
+
 export interface DraftWaypoint {
   key: string;
   sequence: number;
@@ -25,11 +41,87 @@ export interface DraftWaypoint {
   longitude: number;
   altitude_ft: number;
   heading: number | null;
+  heading_mode: HeadingMode;
+  aim_lat?: number | null;
+  aim_lng?: number | null;
   gimbal_pitch: number;
   speed_mph: number | null;
   label: string | null;
   actions: DraftAction[];
 }
+
+const COMPASS_POINTS = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+
+export function normalizeHeading(deg: number): number {
+  return ((deg % 360) + 360) % 360;
+}
+
+export function compassPoint(deg: number): string {
+  const idx = Math.round(normalizeHeading(deg) / 22.5) % 16;
+  return COMPASS_POINTS[idx]!;
+}
+
+export function formatHeading(heading: number | null): string {
+  if (heading == null) return "no heading";
+  const h = Math.round(normalizeHeading(heading));
+  return `${String(h).padStart(3, "0")}° ${compassPoint(h)}`;
+}
+
+export const CAPTURE_ACTIONS: WaypointActionType[] = ["take_photo", "start_video"];
+
+export function capturesMedia(waypoint: DraftWaypoint): boolean {
+  return waypoint.actions.some((a) => CAPTURE_ACTIONS.includes(a.action_type));
+}
+
+/**
+ * Recompute headings for every waypoint whose mode is derived (aim / center / path).
+ * "fixed" headings are preserved exactly as the planner set them.
+ */
+export function resolveWaypointHeadings(list: DraftWaypoint[], center: LatLng | null): DraftWaypoint[] {
+  const sorted = [...list].sort((a, b) => a.sequence - b.sequence);
+  return sorted.map((w, i) => {
+    const self = { latitude: w.latitude, longitude: w.longitude };
+    if (w.heading_mode === "aim") {
+      if (w.aim_lat == null || w.aim_lng == null) return w;
+      return { ...w, heading: Math.round(bearing(self, { latitude: w.aim_lat, longitude: w.aim_lng })) };
+    }
+    if (w.heading_mode === "center") {
+      if (!center) return w;
+      return { ...w, heading: Math.round(bearing(self, center)) };
+    }
+    if (w.heading_mode === "path") {
+      const neighbour = sorted[i + 1] ?? sorted[i - 1] ?? null;
+      if (!neighbour) return w;
+      const target = { latitude: neighbour.latitude, longitude: neighbour.longitude };
+      const bear = bearing(self, target);
+      return { ...w, heading: Math.round(sorted[i + 1] ? bear : normalizeHeading(bear + 180)) };
+    }
+    return w;
+  });
+}
+
+/**
+ * Ensure a waypoint that captures media rotates the aircraft to the planned
+ * heading before the shutter fires. Returns actions in execution order.
+ */
+export function withRotateBeforeCapture(waypoint: DraftWaypoint): DraftAction[] {
+  const actions = waypoint.actions;
+  if (waypoint.heading == null || !capturesMedia(waypoint)) return actions;
+  if (actions.some((a) => a.action_type === "rotate_aircraft")) {
+    return actions.map((a) =>
+      a.action_type === "rotate_aircraft"
+        ? { ...a, param_numeric: Math.round(normalizeHeading(waypoint.heading!)) }
+        : a,
+    );
+  }
+  const firstCapture = actions.findIndex((a) => CAPTURE_ACTIONS.includes(a.action_type));
+  const rotate: DraftAction = {
+    action_type: "rotate_aircraft",
+    param_numeric: Math.round(normalizeHeading(waypoint.heading)),
+  };
+  return [...actions.slice(0, firstCapture), rotate, ...actions.slice(firstCapture)];
+}
+
 
 let keyCounter = 0;
 export function newWaypointKey(): string {
