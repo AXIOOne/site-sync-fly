@@ -26,6 +26,7 @@ import { Route as AuthenticatedSimulateMissionIdRouteImport } from './routes/_au
 import { Route as ApiPublicAgentFlightsRouteImport } from './routes/api/public/agent/flights'
 import { Route as ApiPublicAgentMissionsRouteImport } from './routes/api/public/agent/missions'
 import { Route as ApiPublicAgentRegisterRouteImport } from './routes/api/public/agent/register'
+import { Route as ApiPublicAgentTelemetryRouteImport } from './routes/api/public/agent/telemetry'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -118,6 +119,11 @@ const ApiPublicAgentRegisterRoute = ApiPublicAgentRegisterRouteImport.update({
   path: '/api/public/agent/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAgentTelemetryRoute = ApiPublicAgentTelemetryRouteImport.update({
+  id: '/api/public/agent/telemetry',
+  path: '/api/public/agent/telemetry',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/api/public/agent/flights': typeof ApiPublicAgentFlightsRoute
   '/api/public/agent/missions': typeof ApiPublicAgentMissionsRoute
   '/api/public/agent/register': typeof ApiPublicAgentRegisterRoute
+  '/api/public/agent/telemetry': typeof ApiPublicAgentTelemetryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/api/public/agent/flights': typeof ApiPublicAgentFlightsRoute
   '/api/public/agent/missions': typeof ApiPublicAgentMissionsRoute
   '/api/public/agent/register': typeof ApiPublicAgentRegisterRoute
+  '/api/public/agent/telemetry': typeof ApiPublicAgentTelemetryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/api/public/agent/flights': typeof ApiPublicAgentFlightsRoute
   '/api/public/agent/missions': typeof ApiPublicAgentMissionsRoute
   '/api/public/agent/register': typeof ApiPublicAgentRegisterRoute
+  '/api/public/agent/telemetry': typeof ApiPublicAgentTelemetryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
     | '/api/public/agent/flights'
     | '/api/public/agent/missions'
     | '/api/public/agent/register'
+    | '/api/public/agent/telemetry'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -212,6 +222,7 @@ export interface FileRouteTypes {
     | '/api/public/agent/flights'
     | '/api/public/agent/missions'
     | '/api/public/agent/register'
+    | '/api/public/agent/telemetry'
   id:
     | '__root__'
     | '/'
@@ -231,6 +242,7 @@ export interface FileRouteTypes {
     | '/api/public/agent/flights'
     | '/api/public/agent/missions'
     | '/api/public/agent/register'
+    | '/api/public/agent/telemetry'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -240,6 +252,7 @@ export interface RootRouteChildren {
   ApiPublicAgentFlightsRoute: typeof ApiPublicAgentFlightsRoute
   ApiPublicAgentMissionsRoute: typeof ApiPublicAgentMissionsRoute
   ApiPublicAgentRegisterRoute: typeof ApiPublicAgentRegisterRoute
+  ApiPublicAgentTelemetryRoute: typeof ApiPublicAgentTelemetryRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -363,6 +376,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAgentRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/agent/telemetry': {
+      id: '/api/public/agent/telemetry'
+      path: '/api/public/agent/telemetry'
+      fullPath: '/api/public/agent/telemetry'
+      preLoaderRoute: typeof ApiPublicAgentTelemetryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -404,6 +424,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAgentFlightsRoute: ApiPublicAgentFlightsRoute,
   ApiPublicAgentMissionsRoute: ApiPublicAgentMissionsRoute,
   ApiPublicAgentRegisterRoute: ApiPublicAgentRegisterRoute,
+  ApiPublicAgentTelemetryRoute: ApiPublicAgentTelemetryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
