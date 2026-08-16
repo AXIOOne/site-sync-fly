@@ -137,11 +137,44 @@ padding: 0,
             source: "site-boundaries",
             paint: { "line-color": "#39c0ed", "line-width": 1.8 },
           });
+          map.addSource("waypoint-headings", { type: "geojson", data: emptyFc() });
+          map.addLayer({
+            id: "waypoint-headings-fill",
+            type: "fill",
+            source: "waypoint-headings",
+            paint: {
+              "fill-color": ["case", ["get", "selected"], "#f8b31c", "#ffffff"],
+              "fill-opacity": ["case", ["get", "selected"], 0.35, 0.14],
+            },
+          });
+          map.addLayer({
+            id: "waypoint-headings-line",
+            type: "line",
+            source: "waypoint-headings",
+            paint: {
+              "line-color": ["case", ["get", "selected"], "#f8b31c", "#dbe6ef"],
+              "line-width": ["case", ["get", "selected"], 1.6, 0.9],
+            },
+          });
+          map.addSource("aim-links", { type: "geojson", data: emptyFc() });
+          map.addLayer({
+            id: "aim-links-line",
+            type: "line",
+            source: "aim-links",
+            paint: { "line-color": "#f8b31c", "line-width": 1.2, "line-dasharray": [1.5, 1.5], "line-opacity": 0.8 },
+          });
           setReady(true);
         });
         map.on("click", (event: any) => {
-          clickRef.current?.({ latitude: event.lngLat.lat, longitude: event.lngLat.lng });
+          const point = { latitude: event.lngLat.lat, longitude: event.lngLat.lng };
+          const aim = aimRef.current;
+          if (aim.aimMode && aim.selectedWaypointKey) {
+            aim.onAimPointPicked?.(aim.selectedWaypointKey, point);
+            return;
+          }
+          clickRef.current?.(point);
         });
+
         mapRef.current = map;
       } catch (error) {
         setFailed(error instanceof Error ? error.message : "Map failed to load");
