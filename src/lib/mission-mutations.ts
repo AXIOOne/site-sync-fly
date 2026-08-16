@@ -74,7 +74,7 @@ export async function saveMissionVersion(input: SaveMissionInput) {
       mission_id: mission.id,
       version_number: nextVersion,
       change_note: changeNote || `Version ${nextVersion}`,
-      snapshot,
+      snapshot: snapshot as unknown as import("@/integrations/supabase/types").Json,
       estimated_distance_m: Math.round(estimate.distanceMeters),
       estimated_duration_s: Math.round(estimate.durationSeconds),
       estimated_area_sq_m: Math.round(estimate.areaSqMeters),
