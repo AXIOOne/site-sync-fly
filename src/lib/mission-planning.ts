@@ -22,16 +22,44 @@ export interface DraftAction {
  * How the aircraft heading at a waypoint was decided.
  * - fixed: an explicit bearing the planner set; never recomputed silently
  * - aim:   computed from the waypoint to a picked target on the map
+ * - poi:   locked to a named point of interest from the project POI library
  * - center: always faces the site centroid
  * - path:  follows the route (faces the next waypoint)
  */
-export type HeadingMode = "fixed" | "aim" | "center" | "path";
+export type HeadingMode = "fixed" | "aim" | "poi" | "center" | "path";
 
 export const HEADING_MODE_LABELS: Record<HeadingMode, string> = {
   fixed: "Fixed bearing",
   aim: "Aim at target",
+  poi: "Lock to POI",
   center: "Face center",
   path: "Follow path",
+};
+
+/**
+ * A named site reference the aircraft can be pointed at. POIs live on the
+ * project so every mission on that site reuses the same references.
+ */
+export interface PoiRef {
+  id: string;
+  label: string;
+  latitude: number;
+  longitude: number;
+  /** Optional gimbal pitch that frames this reference well. */
+  gimbal_pitch?: number | null;
+  poi_kind?: string | null;
+}
+
+export const POI_KINDS = ["structure", "equipment", "access", "hazard", "utility", "other"] as const;
+export type PoiKind = (typeof POI_KINDS)[number];
+
+export const POI_KIND_LABELS: Record<PoiKind, string> = {
+  structure: "Structure",
+  equipment: "Equipment",
+  access: "Access",
+  hazard: "Hazard",
+  utility: "Utility",
+  other: "Other",
 };
 
 export interface DraftWaypoint {
@@ -44,6 +72,8 @@ export interface DraftWaypoint {
   heading_mode: HeadingMode;
   aim_lat?: number | null;
   aim_lng?: number | null;
+  /** Set when heading_mode is "poi" — the POI the camera is locked to. */
+  poi_id?: string | null;
   gimbal_pitch: number;
   speed_mph: number | null;
   label: string | null;
