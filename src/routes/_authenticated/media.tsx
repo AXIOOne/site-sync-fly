@@ -12,13 +12,13 @@ export const Route = createFileRoute("/_authenticated/media")({
   }),
   head: () => ({
     meta: [
-      { title: "Media & Progress Comparison — Aerial Site Ops" },
+      { title: "Media & Progress Comparison — SiteView Missions" },
       {
         name: "description",
         content:
           "Geotagged capture library with a side-by-side progress comparison of the same waypoint across different flight dates.",
       },
-      { property: "og:title", content: "Media & Progress Comparison — Aerial Site Ops" },
+      { property: "og:title", content: "Media & Progress Comparison — SiteView Missions" },
       {
         property: "og:description",
         content: "Compare the same viewpoint across flight dates and browse every geotagged capture.",

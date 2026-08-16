@@ -21,13 +21,13 @@ import {
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Mission Dashboard — Aerial Site Ops" },
+      { title: "Mission Dashboard — SiteView Missions" },
       {
         name: "description",
         content:
           "Operations overview for construction drone programs: active projects, upcoming scheduled flights, fleet readiness and recent flight results.",
       },
-      { property: "og:title", content: "Mission Dashboard — Aerial Site Ops" },
+      { property: "og:title", content: "Mission Dashboard — SiteView Missions" },
       {
         property: "og:description",
         content: "Active projects, upcoming missions, fleet readiness and recent flight results in one panel.",

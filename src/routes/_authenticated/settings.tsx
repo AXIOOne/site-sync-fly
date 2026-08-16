@@ -15,13 +15,13 @@ import { issueDeviceToken, setDeviceStatus, setMemberRole } from "@/lib/agent.fu
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
     meta: [
-      { title: "Workspace Settings — Aerial Site Ops" },
+      { title: "Workspace Settings — SiteView Missions" },
       {
         name: "description",
         content:
           "Manage the organization, member roles, telemetry sampling and the Flight Agent device tokens used by the DJI Android agent.",
       },
-      { property: "og:title", content: "Workspace Settings — Aerial Site Ops" },
+      { property: "og:title", content: "Workspace Settings — SiteView Missions" },
       {
         property: "og:description",
         content: "Organization profile, member roles and Flight Agent device token management.",

@@ -25,13 +25,13 @@ import { ringFromGeoJson } from "@/lib/geo";
 export const Route = createFileRoute("/_authenticated/projects/$projectId")({
   head: () => ({
     meta: [
-      { title: "Project — Aerial Site Ops" },
+      { title: "Project — SiteView Missions" },
       {
         name: "description",
         content:
           "Site overview with boundaries, repeatable missions, flight history, schedules and captured progress imagery.",
       },
-      { property: "og:title", content: "Project — Aerial Site Ops" },
+      { property: "og:title", content: "Project — SiteView Missions" },
       {
         property: "og:description",
         content: "Site boundaries, repeatable missions, flight history and progress imagery for one project.",

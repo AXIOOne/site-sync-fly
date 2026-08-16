@@ -15,13 +15,13 @@ import {
 export const Route = createFileRoute("/_authenticated/flights/")({
   head: () => ({
     meta: [
-      { title: "Flights — Aerial Site Ops" },
+      { title: "Flights — SiteView Missions" },
       {
         name: "description",
         content:
           "Flight log and upcoming assignments: duration, distance, photos captured, completion percentage and mission results.",
       },
-      { property: "og:title", content: "Flights — Aerial Site Ops" },
+      { property: "og:title", content: "Flights — SiteView Missions" },
       {
         property: "og:description",
         content: "Flight log and upcoming assignments with duration, distance, capture counts and results.",

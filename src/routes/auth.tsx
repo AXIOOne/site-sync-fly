@@ -3,17 +3,18 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import siteviewLogo from "@/assets/siteview-logo.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Aerial Site Ops" },
+      { title: "Sign in — SiteView Missions" },
       {
         name: "description",
         content:
-          "Sign in to Aerial Site Ops to plan repeatable construction drone missions, review flights and compare site progress.",
+          "Sign in to SiteView Missions to plan repeatable construction drone missions, review flights and compare site progress.",
       },
-      { property: "og:title", content: "Sign in — Aerial Site Ops" },
+      { property: "og:title", content: "Sign in — SiteView Missions" },
       {
         property: "og:description",
         content: "Access your construction drone mission workspace: planning, flight records and progress comparison.",
@@ -90,7 +91,7 @@ function AuthPage() {
           className="absolute inset-0 size-full object-cover opacity-30"
         />
         <div className="relative">
-          <p className="font-display text-sm font-bold uppercase tracking-[0.24em] text-primary">Aerial Site Ops</p>
+          <img src={siteviewLogo.url} alt="SiteView Missions" className="h-8 w-auto" />
           <h1 className="mt-6 max-w-lg font-display text-4xl font-bold uppercase leading-[1.05] tracking-[0.02em] text-foreground">
             Repeatable drone missions for construction progress
           </h1>

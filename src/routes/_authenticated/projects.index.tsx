@@ -12,13 +12,13 @@ import { formatDate } from "@/lib/domain";
 export const Route = createFileRoute("/_authenticated/projects/")({
   head: () => ({
     meta: [
-      { title: "Projects — Aerial Site Ops" },
+      { title: "Projects — SiteView Missions" },
       {
         name: "description",
         content:
           "Every construction site in the drone program with progress, schedule dates, mission counts and project team assignments.",
       },
-      { property: "og:title", content: "Projects — Aerial Site Ops" },
+      { property: "og:title", content: "Projects — SiteView Missions" },
       {
         property: "og:description",
         content: "Construction sites in the drone program with progress, missions and team assignments.",

@@ -15,13 +15,13 @@ import {
 export const Route = createFileRoute("/_authenticated/flights/$flightId")({
   head: () => ({
     meta: [
-      { title: "Flight Record — Aerial Site Ops" },
+      { title: "Flight Record — SiteView Missions" },
       {
         name: "description",
         content:
           "Flight record with flown track, telemetry samples, mission event log and every capture tied to the plan version that was flown.",
       },
-      { property: "og:title", content: "Flight Record — Aerial Site Ops" },
+      { property: "og:title", content: "Flight Record — SiteView Missions" },
       {
         property: "og:description",
         content: "Flown track, telemetry, event log and captures for a single drone flight.",

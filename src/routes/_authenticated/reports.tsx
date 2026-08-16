@@ -12,13 +12,13 @@ import { useSession, useWorkspace } from "@/hooks/useSession";
 export const Route = createFileRoute("/_authenticated/reports")({
   head: () => ({
     meta: [
-      { title: "Progress Reports — Aerial Site Ops" },
+      { title: "Progress Reports — SiteView Missions" },
       {
         name: "description",
         content:
           "Assemble weekly progress reports from a flight's captures, with notes for owners, project managers and subcontractors.",
       },
-      { property: "og:title", content: "Progress Reports — Aerial Site Ops" },
+      { property: "og:title", content: "Progress Reports — SiteView Missions" },
       {
         property: "og:description",
         content: "Build weekly progress reports from flight captures and share them with the project team.",

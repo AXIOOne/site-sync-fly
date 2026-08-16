@@ -9,13 +9,13 @@ import { formatDate, formatDateTime } from "@/lib/domain";
 export const Route = createFileRoute("/_authenticated/progress")({
   head: () => ({
     meta: [
-      { title: "Progress Timeline — Aerial Site Ops" },
+      { title: "Progress Timeline — SiteView Missions" },
       {
         name: "description",
         content:
           "Compare identical waypoint viewpoints week over week with a wipe slider and a capture timeline for each construction site.",
       },
-      { property: "og:title", content: "Progress Timeline — Aerial Site Ops" },
+      { property: "og:title", content: "Progress Timeline — SiteView Missions" },
       {
         property: "og:description",
         content: "Waypoint-matched before/after comparison and a capture timeline for every site.",
