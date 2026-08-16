@@ -18,6 +18,7 @@ import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authent
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedFlightsIndexRouteImport } from './routes/_authenticated/flights.index'
+import { Route as AuthenticatedFlightsFlightIdRouteImport } from './routes/_authenticated/flights.$flightId'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions.$missionId'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
 import { Route as AuthenticatedProjectsProjectIdRouteImport } from './routes/_authenticated/projects.$projectId'
@@ -68,6 +69,12 @@ const AuthenticatedFlightsIndexRoute =
     path: '/flights/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedFlightsFlightIdRoute =
+  AuthenticatedFlightsFlightIdRouteImport.update({
+    id: '/flights/$flightId',
+    path: '/flights/$flightId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdRoute =
   AuthenticatedMissionsMissionIdRouteImport.update({
     id: '/missions/$missionId',
@@ -95,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/media': typeof AuthenticatedMediaRoute
   '/reports': typeof AuthenticatedReportsRoute
+  '/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
   '/flights/': typeof AuthenticatedFlightsIndexRoute
@@ -108,6 +116,7 @@ export interface FileRoutesByTo {
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/media': typeof AuthenticatedMediaRoute
   '/reports': typeof AuthenticatedReportsRoute
+  '/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
   '/flights': typeof AuthenticatedFlightsIndexRoute
@@ -123,6 +132,7 @@ export interface FileRoutesById {
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
+  '/_authenticated/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
   '/_authenticated/flights/': typeof AuthenticatedFlightsIndexRoute
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/integrations'
     | '/media'
     | '/reports'
+    | '/flights/$flightId'
     | '/missions/$missionId'
     | '/projects/$projectId'
     | '/flights/'
@@ -151,6 +162,7 @@ export interface FileRouteTypes {
     | '/integrations'
     | '/media'
     | '/reports'
+    | '/flights/$flightId'
     | '/missions/$missionId'
     | '/projects/$projectId'
     | '/flights'
@@ -165,6 +177,7 @@ export interface FileRouteTypes {
     | '/_authenticated/integrations'
     | '/_authenticated/media'
     | '/_authenticated/reports'
+    | '/_authenticated/flights/$flightId'
     | '/_authenticated/missions/$missionId'
     | '/_authenticated/projects/$projectId'
     | '/_authenticated/flights/'
@@ -242,6 +255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFlightsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/flights/$flightId': {
+      id: '/_authenticated/flights/$flightId'
+      path: '/flights/$flightId'
+      fullPath: '/flights/$flightId'
+      preLoaderRoute: typeof AuthenticatedFlightsFlightIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/missions/$missionId': {
       id: '/_authenticated/missions/$missionId'
       path: '/missions/$missionId'
@@ -272,6 +292,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
+  AuthenticatedFlightsFlightIdRoute: typeof AuthenticatedFlightsFlightIdRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRoute
   AuthenticatedProjectsProjectIdRoute: typeof AuthenticatedProjectsProjectIdRoute
   AuthenticatedFlightsIndexRoute: typeof AuthenticatedFlightsIndexRoute
@@ -284,6 +305,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
+  AuthenticatedFlightsFlightIdRoute: AuthenticatedFlightsFlightIdRoute,
   AuthenticatedMissionsMissionIdRoute: AuthenticatedMissionsMissionIdRoute,
   AuthenticatedProjectsProjectIdRoute: AuthenticatedProjectsProjectIdRoute,
   AuthenticatedFlightsIndexRoute: AuthenticatedFlightsIndexRoute,
