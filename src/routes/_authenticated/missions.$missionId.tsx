@@ -72,6 +72,17 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId")({
   component: Planner,
 });
 
+const COMPASS_PRESETS = [
+  { label: "N", degrees: 0 },
+  { label: "NE", degrees: 45 },
+  { label: "E", degrees: 90 },
+  { label: "SE", degrees: 135 },
+  { label: "S", degrees: 180 },
+  { label: "SW", degrees: 225 },
+  { label: "W", degrees: 270 },
+  { label: "NW", degrees: 315 },
+];
+
 const ACTION_CHOICES: WaypointActionType[] = [
   "take_photo",
   "start_video",
