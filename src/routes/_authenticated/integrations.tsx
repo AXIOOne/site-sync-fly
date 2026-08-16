@@ -1,9 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { AppShell, LoadingPanel, Panel, SectionLabel } from "@/components/app-shell";
 import { StatusChip, toneForIntegration } from "@/components/status-chip";
-import { integrationsQuery } from "@/lib/queries";
+import { supabase } from "@/integrations/supabase/client";
+import { useWorkspace } from "@/hooks/useSession";
+import { integrationsQuery, projectsQuery } from "@/lib/queries";
+import { getFlightWeather } from "@/lib/weather.functions";
 import { INTEGRATION_STATUS_LABELS, formatDateTime } from "@/lib/domain";
+
 
 export const Route = createFileRoute("/_authenticated/integrations")({
   head: () => ({
