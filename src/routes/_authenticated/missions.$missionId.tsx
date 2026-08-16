@@ -26,14 +26,20 @@ import {
   formatDuration,
   type WaypointActionType,
 } from "@/lib/domain";
-import { ringFromGeoJson, SQM_TO_ACRES } from "@/lib/geo";
+import { centroid, ringFromGeoJson, SQM_TO_ACRES } from "@/lib/geo";
 import {
   DEFAULT_GENERATION,
+  HEADING_MODE_LABELS,
+  capturesMedia,
   estimateFlight,
   evaluateReadiness,
+  formatHeading,
   generateForType,
   newWaypointKey,
+  resolveWaypointHeadings,
+  withRotateBeforeCapture,
   type DraftWaypoint,
+  type HeadingMode,
 } from "@/lib/mission-planning";
 import { dispatchAssignment, saveMissionVersion, upsertSchedule } from "@/lib/mission-mutations";
 import {
@@ -66,6 +72,17 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId")({
   component: Planner,
 });
 
+const COMPASS_PRESETS = [
+  { label: "N", degrees: 0 },
+  { label: "NE", degrees: 45 },
+  { label: "E", degrees: 90 },
+  { label: "SE", degrees: 135 },
+  { label: "S", degrees: 180 },
+  { label: "SW", degrees: 225 },
+  { label: "W", degrees: 270 },
+  { label: "NW", degrees: 315 },
+];
+
 const ACTION_CHOICES: WaypointActionType[] = [
   "take_photo",
   "start_video",
@@ -95,6 +112,7 @@ function Planner() {
   const [draft, setDraft] = useState<DraftWaypoint[] | null>(null);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [addMode, setAddMode] = useState(false);
+  const [aimMode, setAimMode] = useState(false);
   const [changeNote, setChangeNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<null | {
@@ -141,16 +159,25 @@ function Planner() {
     });
   }, [mission.data, settings]);
 
+  const hydrationCenter = useMemo(() => {
+    const ring = (boundaries.data ?? [])
+      .map((b) => ringFromGeoJson(b.geojson))
+      .find((r): r is [number, number][] => Boolean(r));
+    return ring ? centroid(ring) : null;
+  }, [boundaries.data]);
+
   useEffect(() => {
     if (draft || !stored.data) return;
     setDraft(
-      (stored.data as any[]).map((w) => ({
+      resolveWaypointHeadings(
+        (stored.data as any[]).map((w) => ({
         key: w.id,
         sequence: w.sequence,
         latitude: w.latitude,
         longitude: w.longitude,
         altitude_ft: Number(w.altitude_ft),
         heading: w.heading == null ? null : Number(w.heading),
+        heading_mode: (w.heading == null ? "path" : "fixed") as HeadingMode,
         gimbal_pitch: Number(w.gimbal_pitch ?? -45),
         speed_mph: w.speed_mph == null ? null : Number(w.speed_mph),
         label: w.label,
@@ -161,9 +188,11 @@ function Planner() {
             action_type: a.action_type,
             param_numeric: a.param_numeric == null ? null : Number(a.param_numeric),
           })),
-      })),
+        })),
+        hydrationCenter,
+      ),
     );
-  }, [stored.data, draft]);
+  }, [stored.data, draft, hydrationCenter]);
 
   const rings = useMemo(
     () =>
@@ -173,6 +202,7 @@ function Planner() {
     [boundaries.data],
   );
   const siteRing = rings.find((r) => r.kind === "site")?.ring ?? rings[0]?.ring ?? null;
+  const siteCenter = useMemo(() => (siteRing ? centroid(siteRing) : null), [siteRing]);
 
   const waypoints = draft ?? [];
   const selectedDrone = (drones.data ?? []).find((d) => d.id === settings?.drone_id);
@@ -200,8 +230,9 @@ function Planner() {
         weatherReviewed: Boolean(settings?.weather_reviewed),
         airspaceReviewed: Boolean(settings?.airspace_reviewed),
         preflightCompleted: false,
+        waypointsMissingHeading: waypoints.filter((w) => capturesMedia(w) && w.heading == null).length,
       }),
-    [mission.data, settings, waypoints.length, estimate.batteryPercent],
+    [mission.data, settings, waypoints, estimate.batteryPercent],
   );
 
   if (mission.isPending || !settings) {
@@ -217,7 +248,12 @@ function Planner() {
   const schedule = (schedules.data ?? []).find((s: any) => s.mission_id === missionId) as any;
 
   function resequence(list: DraftWaypoint[]): DraftWaypoint[] {
-    return list.map((w, i) => ({ ...w, sequence: i + 1 }));
+    return withHeadings(list.map((w, i) => ({ ...w, sequence: i + 1 })));
+  }
+
+  /** Recompute headings for waypoints whose mode derives them from geometry. */
+  function withHeadings(list: DraftWaypoint[]): DraftWaypoint[] {
+    return resolveWaypointHeadings(list, siteCenter);
   }
 
   function regenerate() {
@@ -315,7 +351,7 @@ function Planner() {
         gimbal_pitch: w.gimbal_pitch,
         speed_mph: w.speed_mph,
         label: w.label,
-        actions: w.actions.map((a, i) => ({
+        actions: withRotateBeforeCapture(w).map((a, i) => ({
           sequence: i + 1,
           action_type: a.action_type,
           param_numeric: a.param_numeric ?? null,
@@ -403,13 +439,33 @@ function Planner() {
               <div className="flex gap-1.5">
                 <button
                   type="button"
-                  onClick={() => setAddMode(!addMode)}
+                  onClick={() => {
+                    setAimMode(false);
+                    setAddMode(!addMode);
+                  }}
                   className={
                     "rounded-sm border px-2 py-0.5 font-display text-[10px] uppercase tracking-[0.11em] " +
                     (addMode ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground")
                   }
                 >
                   {addMode ? "Click map to add" : "Add waypoint"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!selectedKey) {
+                      toast.error("Select a waypoint first");
+                      return;
+                    }
+                    setAddMode(false);
+                    setAimMode(!aimMode);
+                  }}
+                  className={
+                    "rounded-sm border px-2 py-0.5 font-display text-[10px] uppercase tracking-[0.11em] " +
+                    (aimMode ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground")
+                  }
+                >
+                  {aimMode ? "Click map to aim" : "Aim at target"}
                 </button>
                 <button
                   type="button"
@@ -431,12 +487,42 @@ function Planner() {
               boundaries={rings}
               editable
               drawMode={addMode}
+              aimMode={aimMode}
               waypoints={waypoints.map((w) => ({
                 key: w.key,
                 sequence: w.sequence,
                 latitude: w.latitude,
                 longitude: w.longitude,
+                heading: w.heading,
+                aim:
+                  w.heading_mode === "aim" && w.aim_lat != null && w.aim_lng != null
+                    ? { latitude: w.aim_lat, longitude: w.aim_lng }
+                    : null,
               }))}
+              onWaypointHeadingChange={(key, degrees) =>
+                setDraft((list) =>
+                  withHeadings(
+                    (list ?? []).map((w) =>
+                      w.key === key
+                        ? { ...w, heading: degrees, heading_mode: "fixed", aim_lat: null, aim_lng: null }
+                        : w,
+                    ),
+                  ),
+                )
+              }
+              onAimPointPicked={(key, point) => {
+                setDraft((list) =>
+                  withHeadings(
+                    (list ?? []).map((w) =>
+                      w.key === key
+                        ? { ...w, heading_mode: "aim", aim_lat: point.latitude, aim_lng: point.longitude }
+                        : w,
+                    ),
+                  ),
+                );
+                setAimMode(false);
+                toast.success("Aim target set");
+              }}
               markers={[
                 ...(m.takeoff_lat != null
                   ? [{ latitude: m.takeoff_lat, longitude: m.takeoff_lng!, label: "TO", tone: "takeoff" as const }]
@@ -449,8 +535,10 @@ function Planner() {
               onWaypointClick={setSelectedKey}
               onWaypointDragEnd={(key, point) =>
                 setDraft((list) =>
-                  (list ?? []).map((w) =>
-                    w.key === key ? { ...w, latitude: point.latitude, longitude: point.longitude } : w,
+                  withHeadings(
+                    (list ?? []).map((w) =>
+                      w.key === key ? { ...w, latitude: point.latitude, longitude: point.longitude } : w,
+                    ),
                   ),
                 )
               }
@@ -466,6 +554,9 @@ function Planner() {
                       longitude: point.longitude,
                       altitude_ft: settings!.altitude_ft,
                       heading: null,
+                      heading_mode: (settings!.aircraft_heading === "point_to_center"
+                        ? "center"
+                        : "path") as HeadingMode,
                       gimbal_pitch: settings!.gimbal_pitch,
                       speed_mph: settings!.speed_mph,
                       label: null,
@@ -512,6 +603,15 @@ function Planner() {
                   </span>
                   <span className="font-mono text-[11px] text-muted-foreground">{w.altitude_ft} ft</span>
                   <span className="font-mono text-[11px] text-muted-foreground">gimbal {w.gimbal_pitch}°</span>
+                  <span
+                    className={
+                      "font-mono text-[11px] " +
+                      (w.heading == null && capturesMedia(w) ? "text-warning" : "text-muted-foreground")
+                    }
+                    title={HEADING_MODE_LABELS[w.heading_mode]}
+                  >
+                    {formatHeading(w.heading)}
+                  </span>
                   <span className="flex-1 truncate text-[11px] text-muted-foreground">
                     {w.actions.map((a) => ACTION_LABELS[a.action_type]).join(", ") || "No actions"}
                   </span>
@@ -550,11 +650,121 @@ function Planner() {
                   value={selected.speed_mph ?? settings.speed_mph}
                   onChange={(v) => patchWaypoint(setDraft, selected.key, { speed_mph: v })}
                 />
-                <NumberField
-                  label="Heading (°)"
-                  value={selected.heading ?? 0}
-                  onChange={(v) => patchWaypoint(setDraft, selected.key, { heading: v })}
-                />
+                <div className="sm:col-span-3 rounded-sm border border-border p-2.5">
+                  <SectionLabel>Camera orientation</SectionLabel>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    {(["fixed", "aim", "center", "path"] as HeadingMode[]).map((mode) => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => {
+                          setDraft((list) =>
+                            withHeadings(
+                              (list ?? []).map((w) =>
+                                w.key === selected!.key
+                                  ? {
+                                      ...w,
+                                      heading_mode: mode,
+                                      heading: mode === "fixed" ? (w.heading ?? 0) : w.heading,
+                                    }
+                                  : w,
+                              ),
+                            ),
+                          );
+                          if (mode === "aim") setAimMode(true);
+                        }}
+                        className={
+                          "rounded-sm border px-2 py-0.5 font-display text-[10px] uppercase tracking-[0.11em] " +
+                          (selected!.heading_mode === mode
+                            ? "border-primary bg-primary/15 text-primary"
+                            : "border-border text-muted-foreground hover:text-foreground")
+                        }
+                      >
+                        {HEADING_MODE_LABELS[mode]}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="mt-2.5 grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                    <label className="block">
+                      <SectionLabel>Heading — {formatHeading(selected.heading)}</SectionLabel>
+                      <input
+                        type="range"
+                        min={0}
+                        max={359}
+                        value={Math.round(selected.heading ?? 0)}
+                        onChange={(e) =>
+                          patchWaypoint(setDraft, selected!.key, {
+                            heading: Number(e.target.value),
+                            heading_mode: "fixed",
+                            aim_lat: null,
+                            aim_lng: null,
+                          })
+                        }
+                        className="mt-1 w-full accent-primary"
+                      />
+                    </label>
+                    <div className="flex flex-wrap gap-1">
+                      {COMPASS_PRESETS.map((preset) => (
+                        <button
+                          key={preset.label}
+                          type="button"
+                          onClick={() =>
+                            patchWaypoint(setDraft, selected!.key, {
+                              heading: preset.degrees,
+                              heading_mode: "fixed",
+                              aim_lat: null,
+                              aim_lng: null,
+                            })
+                          }
+                          className="rounded-sm border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground hover:text-foreground"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAddMode(false);
+                        setAimMode(!aimMode);
+                      }}
+                      className={
+                        "rounded-sm border px-2 py-0.5 font-display text-[10px] uppercase tracking-[0.11em] " +
+                        (aimMode ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground")
+                      }
+                    >
+                      {aimMode ? "Click map to pick target" : "Pick aim target on map"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDraft((list) =>
+                          withHeadings(
+                            (list ?? []).map((w) => ({
+                              ...w,
+                              heading_mode: selected!.heading_mode,
+                              heading: selected!.heading_mode === "fixed" ? selected!.heading : w.heading,
+                              aim_lat: selected!.aim_lat ?? null,
+                              aim_lng: selected!.aim_lng ?? null,
+                            })),
+                          ),
+                        )
+                      }
+                      className="rounded-sm border border-border px-2 py-0.5 font-display text-[10px] uppercase tracking-[0.11em] text-muted-foreground hover:text-foreground"
+                    >
+                      Apply to all waypoints
+                    </button>
+                  </div>
+                  <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                    Drag the round handle on the map to spin the aircraft. A{" "}
+                    <span className="font-mono">rotate_aircraft</span> action is written before every photo or video
+                    action on export, so the aircraft is settled on this heading before capture.
+                  </p>
+                </div>
                 <label className="block sm:col-span-2">
                   <SectionLabel>Label</SectionLabel>
                   <input

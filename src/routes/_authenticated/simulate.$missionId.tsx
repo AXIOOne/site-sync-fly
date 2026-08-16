@@ -8,7 +8,7 @@ import { SiteMap } from "@/components/map/site-map";
 import { dronesQuery, missionQuery, missionVersionsQuery, pilotsQuery, projectQuery, waypointsQuery } from "@/lib/queries";
 import { PREFLIGHT_ITEMS, formatDistanceMeters, formatDuration } from "@/lib/domain";
 import type { LatLng } from "@/lib/geo";
-import type { DraftWaypoint } from "@/lib/mission-planning";
+import type { DraftWaypoint, HeadingMode } from "@/lib/mission-planning";
 import { FlightSimulator, type SimulatorState } from "@/lib/services/flight-simulator";
 import {
   FlightExecutionService,
@@ -80,6 +80,8 @@ function MissionControl() {
         longitude: w.longitude,
         altitude_ft: Number(w.altitude_ft),
         heading: w.heading == null ? null : Number(w.heading),
+        heading_mode: (w.heading == null ? "path" : "fixed") as HeadingMode,
+
         gimbal_pitch: Number(w.gimbal_pitch ?? -45),
         speed_mph: w.speed_mph == null ? null : Number(w.speed_mph),
         label: w.label,

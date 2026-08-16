@@ -234,3 +234,23 @@
 }
 .site-marker-rth { border-color: var(--warning); color: var(--warning); }
 .site-marker-takeoff { border-color: var(--success); color: var(--success); }
+
+/* Heading aim controls */
+.aim-handle {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--primary);
+  background: color-mix(in oklab, var(--primary) 35%, var(--panel));
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 22%, transparent);
+  cursor: grab;
+}
+.aim-handle:active { cursor: grabbing; }
+.aim-target {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--primary);
+  background: transparent;
+}
+
