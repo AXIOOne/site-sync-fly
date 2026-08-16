@@ -9,12 +9,17 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/projects", label: "Projects" },
+  { to: "/missions", label: "Missions" },
   { to: "/flights", label: "Flights" },
   { to: "/media", label: "Media" },
+  { to: "/progress", label: "Progress" },
   { to: "/reports", label: "Reports" },
   { to: "/fleet", label: "Fleet" },
+  { to: "/pilots", label: "Pilots" },
   { to: "/integrations", label: "Integrations" },
+  { to: "/settings", label: "Settings" },
 ] as const;
+
 
 export function AppShell({
   children,

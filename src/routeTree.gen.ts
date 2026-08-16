@@ -16,13 +16,24 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedFleetRouteImport } from './routes/_authenticated/fleet'
 import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
+import { Route as AuthenticatedPilotsRouteImport } from './routes/_authenticated/pilots'
+import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedFlightsIndexRouteImport } from './routes/_authenticated/flights.index'
 import { Route as AuthenticatedFlightsFlightIdRouteImport } from './routes/_authenticated/flights.$flightId'
+import { Route as AuthenticatedMissionsIndexRouteImport } from './routes/_authenticated/missions.index'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions.$missionId'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
 import { Route as AuthenticatedProjectsProjectIdRouteImport } from './routes/_authenticated/projects.$projectId'
+import { Route as AuthenticatedReportReportIdRouteImport } from './routes/_authenticated/report.$reportId'
 import { Route as AuthenticatedSimulateMissionIdRouteImport } from './routes/_authenticated/simulate.$missionId'
+import { Route as ApiPublicAgentEventsRouteImport } from './routes/api/public/agent/events'
+import { Route as ApiPublicAgentFlightsRouteImport } from './routes/api/public/agent/flights'
+import { Route as ApiPublicAgentMediaRouteImport } from './routes/api/public/agent/media'
+import { Route as ApiPublicAgentMissionsRouteImport } from './routes/api/public/agent/missions'
+import { Route as ApiPublicAgentRegisterRouteImport } from './routes/api/public/agent/register'
+import { Route as ApiPublicAgentTelemetryRouteImport } from './routes/api/public/agent/telemetry'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -59,9 +70,24 @@ const AuthenticatedMediaRoute = AuthenticatedMediaRouteImport.update({
   path: '/media',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPilotsRoute = AuthenticatedPilotsRouteImport.update({
+  id: '/pilots',
+  path: '/pilots',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFlightsIndexRoute =
@@ -74,6 +100,12 @@ const AuthenticatedFlightsFlightIdRoute =
   AuthenticatedFlightsFlightIdRouteImport.update({
     id: '/flights/$flightId',
     path: '/flights/$flightId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMissionsIndexRoute =
+  AuthenticatedMissionsIndexRouteImport.update({
+    id: '/missions/',
+    path: '/missions/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedMissionsMissionIdRoute =
@@ -94,12 +126,48 @@ const AuthenticatedProjectsProjectIdRoute =
     path: '/projects/$projectId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedReportReportIdRoute =
+  AuthenticatedReportReportIdRouteImport.update({
+    id: '/report/$reportId',
+    path: '/report/$reportId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSimulateMissionIdRoute =
   AuthenticatedSimulateMissionIdRouteImport.update({
     id: '/simulate/$missionId',
     path: '/simulate/$missionId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicAgentEventsRoute = ApiPublicAgentEventsRouteImport.update({
+  id: '/api/public/agent/events',
+  path: '/api/public/agent/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAgentFlightsRoute = ApiPublicAgentFlightsRouteImport.update({
+  id: '/api/public/agent/flights',
+  path: '/api/public/agent/flights',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAgentMediaRoute = ApiPublicAgentMediaRouteImport.update({
+  id: '/api/public/agent/media',
+  path: '/api/public/agent/media',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAgentMissionsRoute = ApiPublicAgentMissionsRouteImport.update({
+  id: '/api/public/agent/missions',
+  path: '/api/public/agent/missions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAgentRegisterRoute = ApiPublicAgentRegisterRouteImport.update({
+  id: '/api/public/agent/register',
+  path: '/api/public/agent/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAgentTelemetryRoute = ApiPublicAgentTelemetryRouteImport.update({
+  id: '/api/public/agent/telemetry',
+  path: '/api/public/agent/telemetry',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,13 +176,24 @@ export interface FileRoutesByFullPath {
   '/fleet': typeof AuthenticatedFleetRoute
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/media': typeof AuthenticatedMediaRoute
+  '/pilots': typeof AuthenticatedPilotsRoute
+  '/progress': typeof AuthenticatedProgressRoute
   '/reports': typeof AuthenticatedReportsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/report/$reportId': typeof AuthenticatedReportReportIdRoute
   '/simulate/$missionId': typeof AuthenticatedSimulateMissionIdRoute
   '/flights/': typeof AuthenticatedFlightsIndexRoute
+  '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/projects/': typeof AuthenticatedProjectsIndexRoute
+  '/api/public/agent/events': typeof ApiPublicAgentEventsRoute
+  '/api/public/agent/flights': typeof ApiPublicAgentFlightsRoute
+  '/api/public/agent/media': typeof ApiPublicAgentMediaRoute
+  '/api/public/agent/missions': typeof ApiPublicAgentMissionsRoute
+  '/api/public/agent/register': typeof ApiPublicAgentRegisterRoute
+  '/api/public/agent/telemetry': typeof ApiPublicAgentTelemetryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -123,13 +202,24 @@ export interface FileRoutesByTo {
   '/fleet': typeof AuthenticatedFleetRoute
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/media': typeof AuthenticatedMediaRoute
+  '/pilots': typeof AuthenticatedPilotsRoute
+  '/progress': typeof AuthenticatedProgressRoute
   '/reports': typeof AuthenticatedReportsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/report/$reportId': typeof AuthenticatedReportReportIdRoute
   '/simulate/$missionId': typeof AuthenticatedSimulateMissionIdRoute
   '/flights': typeof AuthenticatedFlightsIndexRoute
+  '/missions': typeof AuthenticatedMissionsIndexRoute
   '/projects': typeof AuthenticatedProjectsIndexRoute
+  '/api/public/agent/events': typeof ApiPublicAgentEventsRoute
+  '/api/public/agent/flights': typeof ApiPublicAgentFlightsRoute
+  '/api/public/agent/media': typeof ApiPublicAgentMediaRoute
+  '/api/public/agent/missions': typeof ApiPublicAgentMissionsRoute
+  '/api/public/agent/register': typeof ApiPublicAgentRegisterRoute
+  '/api/public/agent/telemetry': typeof ApiPublicAgentTelemetryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,13 +230,24 @@ export interface FileRoutesById {
   '/_authenticated/fleet': typeof AuthenticatedFleetRoute
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
+  '/_authenticated/pilots': typeof AuthenticatedPilotsRoute
+  '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/_authenticated/report/$reportId': typeof AuthenticatedReportReportIdRoute
   '/_authenticated/simulate/$missionId': typeof AuthenticatedSimulateMissionIdRoute
   '/_authenticated/flights/': typeof AuthenticatedFlightsIndexRoute
+  '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
+  '/api/public/agent/events': typeof ApiPublicAgentEventsRoute
+  '/api/public/agent/flights': typeof ApiPublicAgentFlightsRoute
+  '/api/public/agent/media': typeof ApiPublicAgentMediaRoute
+  '/api/public/agent/missions': typeof ApiPublicAgentMissionsRoute
+  '/api/public/agent/register': typeof ApiPublicAgentRegisterRoute
+  '/api/public/agent/telemetry': typeof ApiPublicAgentTelemetryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -157,13 +258,24 @@ export interface FileRouteTypes {
     | '/fleet'
     | '/integrations'
     | '/media'
+    | '/pilots'
+    | '/progress'
     | '/reports'
+    | '/settings'
     | '/flights/$flightId'
     | '/missions/$missionId'
     | '/projects/$projectId'
+    | '/report/$reportId'
     | '/simulate/$missionId'
     | '/flights/'
+    | '/missions/'
     | '/projects/'
+    | '/api/public/agent/events'
+    | '/api/public/agent/flights'
+    | '/api/public/agent/media'
+    | '/api/public/agent/missions'
+    | '/api/public/agent/register'
+    | '/api/public/agent/telemetry'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -172,13 +284,24 @@ export interface FileRouteTypes {
     | '/fleet'
     | '/integrations'
     | '/media'
+    | '/pilots'
+    | '/progress'
     | '/reports'
+    | '/settings'
     | '/flights/$flightId'
     | '/missions/$missionId'
     | '/projects/$projectId'
+    | '/report/$reportId'
     | '/simulate/$missionId'
     | '/flights'
+    | '/missions'
     | '/projects'
+    | '/api/public/agent/events'
+    | '/api/public/agent/flights'
+    | '/api/public/agent/media'
+    | '/api/public/agent/missions'
+    | '/api/public/agent/register'
+    | '/api/public/agent/telemetry'
   id:
     | '__root__'
     | '/'
@@ -188,19 +311,36 @@ export interface FileRouteTypes {
     | '/_authenticated/fleet'
     | '/_authenticated/integrations'
     | '/_authenticated/media'
+    | '/_authenticated/pilots'
+    | '/_authenticated/progress'
     | '/_authenticated/reports'
+    | '/_authenticated/settings'
     | '/_authenticated/flights/$flightId'
     | '/_authenticated/missions/$missionId'
     | '/_authenticated/projects/$projectId'
+    | '/_authenticated/report/$reportId'
     | '/_authenticated/simulate/$missionId'
     | '/_authenticated/flights/'
+    | '/_authenticated/missions/'
     | '/_authenticated/projects/'
+    | '/api/public/agent/events'
+    | '/api/public/agent/flights'
+    | '/api/public/agent/media'
+    | '/api/public/agent/missions'
+    | '/api/public/agent/register'
+    | '/api/public/agent/telemetry'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicAgentEventsRoute: typeof ApiPublicAgentEventsRoute
+  ApiPublicAgentFlightsRoute: typeof ApiPublicAgentFlightsRoute
+  ApiPublicAgentMediaRoute: typeof ApiPublicAgentMediaRoute
+  ApiPublicAgentMissionsRoute: typeof ApiPublicAgentMissionsRoute
+  ApiPublicAgentRegisterRoute: typeof ApiPublicAgentRegisterRoute
+  ApiPublicAgentTelemetryRoute: typeof ApiPublicAgentTelemetryRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -254,11 +394,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMediaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pilots': {
+      id: '/_authenticated/pilots'
+      path: '/pilots'
+      fullPath: '/pilots'
+      preLoaderRoute: typeof AuthenticatedPilotsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/progress': {
+      id: '/_authenticated/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof AuthenticatedProgressRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/reports': {
       id: '/_authenticated/reports'
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/flights/': {
@@ -273,6 +434,13 @@ declare module '@tanstack/react-router' {
       path: '/flights/$flightId'
       fullPath: '/flights/$flightId'
       preLoaderRoute: typeof AuthenticatedFlightsFlightIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/missions/': {
+      id: '/_authenticated/missions/'
+      path: '/missions'
+      fullPath: '/missions/'
+      preLoaderRoute: typeof AuthenticatedMissionsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/missions/$missionId': {
@@ -296,12 +464,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/report/$reportId': {
+      id: '/_authenticated/report/$reportId'
+      path: '/report/$reportId'
+      fullPath: '/report/$reportId'
+      preLoaderRoute: typeof AuthenticatedReportReportIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/simulate/$missionId': {
       id: '/_authenticated/simulate/$missionId'
       path: '/simulate/$missionId'
       fullPath: '/simulate/$missionId'
       preLoaderRoute: typeof AuthenticatedSimulateMissionIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/agent/events': {
+      id: '/api/public/agent/events'
+      path: '/api/public/agent/events'
+      fullPath: '/api/public/agent/events'
+      preLoaderRoute: typeof ApiPublicAgentEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/agent/flights': {
+      id: '/api/public/agent/flights'
+      path: '/api/public/agent/flights'
+      fullPath: '/api/public/agent/flights'
+      preLoaderRoute: typeof ApiPublicAgentFlightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/agent/media': {
+      id: '/api/public/agent/media'
+      path: '/api/public/agent/media'
+      fullPath: '/api/public/agent/media'
+      preLoaderRoute: typeof ApiPublicAgentMediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/agent/missions': {
+      id: '/api/public/agent/missions'
+      path: '/api/public/agent/missions'
+      fullPath: '/api/public/agent/missions'
+      preLoaderRoute: typeof ApiPublicAgentMissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/agent/register': {
+      id: '/api/public/agent/register'
+      path: '/api/public/agent/register'
+      fullPath: '/api/public/agent/register'
+      preLoaderRoute: typeof ApiPublicAgentRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/agent/telemetry': {
+      id: '/api/public/agent/telemetry'
+      path: '/api/public/agent/telemetry'
+      fullPath: '/api/public/agent/telemetry'
+      preLoaderRoute: typeof ApiPublicAgentTelemetryRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -311,12 +528,17 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFleetRoute: typeof AuthenticatedFleetRoute
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
+  AuthenticatedPilotsRoute: typeof AuthenticatedPilotsRoute
+  AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedFlightsFlightIdRoute: typeof AuthenticatedFlightsFlightIdRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRoute
   AuthenticatedProjectsProjectIdRoute: typeof AuthenticatedProjectsProjectIdRoute
+  AuthenticatedReportReportIdRoute: typeof AuthenticatedReportReportIdRoute
   AuthenticatedSimulateMissionIdRoute: typeof AuthenticatedSimulateMissionIdRoute
   AuthenticatedFlightsIndexRoute: typeof AuthenticatedFlightsIndexRoute
+  AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
   AuthenticatedProjectsIndexRoute: typeof AuthenticatedProjectsIndexRoute
 }
 
@@ -325,12 +547,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFleetRoute: AuthenticatedFleetRoute,
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
+  AuthenticatedPilotsRoute: AuthenticatedPilotsRoute,
+  AuthenticatedProgressRoute: AuthenticatedProgressRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedFlightsFlightIdRoute: AuthenticatedFlightsFlightIdRoute,
   AuthenticatedMissionsMissionIdRoute: AuthenticatedMissionsMissionIdRoute,
   AuthenticatedProjectsProjectIdRoute: AuthenticatedProjectsProjectIdRoute,
+  AuthenticatedReportReportIdRoute: AuthenticatedReportReportIdRoute,
   AuthenticatedSimulateMissionIdRoute: AuthenticatedSimulateMissionIdRoute,
   AuthenticatedFlightsIndexRoute: AuthenticatedFlightsIndexRoute,
+  AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
   AuthenticatedProjectsIndexRoute: AuthenticatedProjectsIndexRoute,
 }
 
@@ -341,6 +568,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicAgentEventsRoute: ApiPublicAgentEventsRoute,
+  ApiPublicAgentFlightsRoute: ApiPublicAgentFlightsRoute,
+  ApiPublicAgentMediaRoute: ApiPublicAgentMediaRoute,
+  ApiPublicAgentMissionsRoute: ApiPublicAgentMissionsRoute,
+  ApiPublicAgentRegisterRoute: ApiPublicAgentRegisterRoute,
+  ApiPublicAgentTelemetryRoute: ApiPublicAgentTelemetryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

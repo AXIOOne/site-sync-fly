@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { AppShell, LoadingPanel, Metric, Panel } from "@/components/app-shell";
 import { StatusChip, toneForDevice, toneForDroneStatus } from "@/components/status-chip";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession, useWorkspace } from "@/hooks/useSession";
 import { devicesQuery, dronesQuery, pilotsQuery } from "@/lib/queries";
 import { DEVICE_STATUS_LABELS, DRONE_STATUS_LABELS, formatDate, formatDateTime } from "@/lib/domain";
 
@@ -26,15 +30,177 @@ export const Route = createFileRoute("/_authenticated/fleet")({
   component: Fleet,
 });
 
+const inputClass =
+  "w-full rounded-sm border border-border bg-input px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary";
+const labelClass = "font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground";
+const buttonClass =
+  "rounded-sm border border-primary/50 bg-primary/15 px-3 py-1.5 font-display text-[11px] font-semibold uppercase tracking-[0.11em] text-primary transition-colors hover:bg-primary/25 disabled:opacity-50";
+
+const EMPTY_AIRCRAFT = {
+  manufacturer: "DJI",
+  model: "",
+  nickname: "",
+  serial_number: "",
+  registration_number: "",
+  camera: "",
+  battery_capacity_minutes: "35",
+  has_rtk: false,
+};
+
 function Fleet() {
   const drones = useQuery(dronesQuery());
   const pilots = useQuery(pilotsQuery());
   const devices = useQuery(devicesQuery());
+  const queryClient = useQueryClient();
+  const { user } = useSession();
+  const { data: workspace } = useWorkspace(user?.id);
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(EMPTY_AIRCRAFT);
 
   const totalHours = (drones.data ?? []).reduce((sum, d) => sum + Number(d.flight_hours), 0);
 
+  const addAircraft = useMutation({
+    mutationFn: async () => {
+      if (!workspace) throw new Error("Workspace not ready");
+      const { error } = await supabase.from("drones").insert({
+        organization_id: workspace.organization.id,
+        manufacturer: form.manufacturer.trim() || "DJI",
+        model: form.model.trim(),
+        nickname: form.nickname.trim() || null,
+        serial_number: form.serial_number.trim() || null,
+        registration_number: form.registration_number.trim() || null,
+        camera: form.camera.trim() || null,
+        battery_capacity_minutes: form.battery_capacity_minutes ? Number(form.battery_capacity_minutes) : null,
+        has_rtk: form.has_rtk,
+        status: "available",
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      toast.success("Aircraft added to the fleet");
+      setForm(EMPTY_AIRCRAFT);
+      setOpen(false);
+      void queryClient.invalidateQueries({ queryKey: ["drones"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   return (
-    <AppShell title="Fleet & Pilots" subtitle="Aircraft, crew and the devices that will run the DJI Flight Agent.">
+    <AppShell
+      title="Fleet & Pilots"
+      subtitle="Aircraft, crew and the devices that will run the DJI Flight Agent."
+      actions={
+        <button type="button" className={buttonClass} onClick={() => setOpen((value) => !value)}>
+          {open ? "Close" : "Add aircraft"}
+        </button>
+      }
+    >
+      {open ? (
+        <Panel title="Add aircraft" className="mb-3">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <div>
+              <label className={labelClass} htmlFor="a-manufacturer">
+                Manufacturer
+              </label>
+              <input
+                id="a-manufacturer"
+                className={inputClass}
+                value={form.manufacturer}
+                onChange={(event) => setForm({ ...form, manufacturer: event.target.value })}
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="a-model">
+                Model
+              </label>
+              <input
+                id="a-model"
+                className={inputClass}
+                placeholder="Mavic 3E"
+                value={form.model}
+                onChange={(event) => setForm({ ...form, model: event.target.value })}
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="a-nickname">
+                Nickname
+              </label>
+              <input
+                id="a-nickname"
+                className={inputClass}
+                value={form.nickname}
+                onChange={(event) => setForm({ ...form, nickname: event.target.value })}
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="a-serial">
+                Serial number
+              </label>
+              <input
+                id="a-serial"
+                className={inputClass}
+                value={form.serial_number}
+                onChange={(event) => setForm({ ...form, serial_number: event.target.value })}
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="a-reg">
+                FAA registration
+              </label>
+              <input
+                id="a-reg"
+                className={inputClass}
+                value={form.registration_number}
+                onChange={(event) => setForm({ ...form, registration_number: event.target.value })}
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="a-camera">
+                Camera
+              </label>
+              <input
+                id="a-camera"
+                className={inputClass}
+                value={form.camera}
+                onChange={(event) => setForm({ ...form, camera: event.target.value })}
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="a-battery">
+                Battery endurance (minutes)
+              </label>
+              <input
+                id="a-battery"
+                type="number"
+                min={5}
+                max={120}
+                className={inputClass}
+                value={form.battery_capacity_minutes}
+                onChange={(event) => setForm({ ...form, battery_capacity_minutes: event.target.value })}
+              />
+            </div>
+            <label className="flex items-end gap-2 pb-1.5 text-sm text-muted-foreground">
+              <input
+                type="checkbox"
+                className="size-4 accent-primary"
+                checked={form.has_rtk}
+                onChange={(event) => setForm({ ...form, has_rtk: event.target.checked })}
+              />
+              RTK equipped
+            </label>
+          </div>
+          <button
+            type="button"
+            className={`${buttonClass} mt-3`}
+            disabled={form.model.trim().length < 2 || addAircraft.isPending}
+            onClick={() => addAircraft.mutate()}
+          >
+            {addAircraft.isPending ? "Adding…" : "Add aircraft"}
+          </button>
+        </Panel>
+      ) : null}
+
+
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Metric label="Aircraft" value={drones.data?.length ?? 0} />
         <Metric
