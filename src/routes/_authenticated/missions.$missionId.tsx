@@ -751,6 +751,79 @@ function Planner() {
             </div>
           </Panel>
 
+          <Panel
+            title={`Points of interest (${poiRefs.length})`}
+            dense
+            action={
+              <span className="font-mono text-[10px] uppercase tracking-[0.11em] text-muted-foreground">
+                Camera references for photo + video
+              </span>
+            }
+          >
+            <div className="divide-y divide-border">
+              {poiRefs.map((poi) => {
+                const usedBy = waypoints.filter((w) => w.heading_mode === "poi" && w.poi_id === poi.id).length;
+                return (
+                  <div key={poi.id} className="grid gap-2 px-3 py-2 sm:grid-cols-[minmax(0,1.4fr)_auto_auto_auto_auto]">
+                    <input
+                      defaultValue={poi.label}
+                      onBlur={(e) => {
+                        const label = e.target.value.trim();
+                        if (label && label !== poi.label) void savePoi(poi.id, { label });
+                      }}
+                      className="rounded-sm border border-input bg-card px-2 py-1 text-sm text-foreground"
+                      aria-label="POI label"
+                    />
+                    <select
+                      value={poi.poi_kind ?? "structure"}
+                      onChange={(e) => void savePoi(poi.id, { poi_kind: e.target.value })}
+                      className="rounded-sm border border-input bg-card px-2 py-1 font-mono text-[11px] text-foreground"
+                      aria-label="POI kind"
+                    >
+                      {POI_KINDS.map((kind) => (
+                        <option key={kind} value={kind}>
+                          {POI_KIND_LABELS[kind as PoiKind]}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      defaultValue={poi.altitude_ft ?? ""}
+                      placeholder="height ft"
+                      onBlur={(e) => {
+                        const raw = e.target.value.trim();
+                        const next = raw === "" ? null : Number(raw);
+                        if (next !== (poi.altitude_ft ?? null)) void savePoi(poi.id, { altitude_ft: next });
+                      }}
+                      className="w-24 rounded-sm border border-input bg-card px-2 py-1 font-mono text-[11px] text-foreground"
+                      aria-label="POI height in feet"
+                    />
+                    <span className="self-center font-mono text-[11px] text-muted-foreground">
+                      {usedBy} wp · {poi.latitude.toFixed(5)}, {poi.longitude.toFixed(5)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => void removePoi(poi.id)}
+                      className="self-center font-display text-[10px] uppercase tracking-[0.11em] text-destructive"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                );
+              })}
+              {poiRefs.length === 0 ? (
+                <p className="px-3 py-6 text-sm text-muted-foreground">
+                  No points of interest yet. Use <span className="font-mono">Add POI</span> and click the map to mark a
+                  crane, structure or gate, then lock a waypoint's camera to it.
+                </p>
+              ) : null}
+            </div>
+            <p className="px-3 pb-3 pt-1 text-[11px] leading-relaxed text-muted-foreground">
+              Height is the feature height above launch. When set, POI-locked waypoints derive their gimbal pitch from
+              the geometry so the reference stays framed in photos and video.
+            </p>
+          </Panel>
+
           {selected ? (
             <Panel title={`Waypoint ${String(selected.sequence).padStart(2, "0")}`}>
               <div className="grid gap-3 sm:grid-cols-3">

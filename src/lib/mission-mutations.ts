@@ -63,6 +63,7 @@ export async function saveMissionVersion(input: SaveMissionInput) {
       heading_mode: w.heading_mode,
       aim_lat: w.aim_lat ?? null,
       aim_lng: w.aim_lng ?? null,
+      poi_id: w.poi_id ?? null,
       gimbal_pitch: w.gimbal_pitch,
       speed_mph: w.speed_mph,
       label: w.label,
