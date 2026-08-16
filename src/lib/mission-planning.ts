@@ -385,6 +385,9 @@ export interface ReadinessInput {
   weatherReviewed: boolean;
   airspaceReviewed: boolean;
   preflightCompleted: boolean;
+  /** Waypoints that capture media but have no aircraft heading set. */
+  waypointsMissingHeading?: number;
+
 }
 
 export function evaluateReadiness(input: ReadinessInput): {
