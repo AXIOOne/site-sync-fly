@@ -80,7 +80,7 @@ function MissionControl() {
         longitude: w.longitude,
         altitude_ft: Number(w.altitude_ft),
         heading: w.heading == null ? null : Number(w.heading),
-        heading_mode: (w.heading == null ? "path" : "fixed") as const,
+        heading_mode: (w.heading == null ? "path" : "fixed") as HeadingMode,
 
         gimbal_pitch: Number(w.gimbal_pitch ?? -45),
         speed_mph: w.speed_mph == null ? null : Number(w.speed_mph),
