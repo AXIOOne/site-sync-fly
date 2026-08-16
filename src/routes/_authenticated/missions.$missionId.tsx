@@ -159,10 +159,18 @@ function Planner() {
     });
   }, [mission.data, settings]);
 
+  const hydrationCenter = useMemo(() => {
+    const ring = (boundaries.data ?? [])
+      .map((b) => ringFromGeoJson(b.geojson))
+      .find((r): r is [number, number][] => Boolean(r));
+    return ring ? centroid(ring) : null;
+  }, [boundaries.data]);
+
   useEffect(() => {
     if (draft || !stored.data) return;
     setDraft(
-      (stored.data as any[]).map((w) => ({
+      resolveWaypointHeadings(
+        (stored.data as any[]).map((w) => ({
         key: w.id,
         sequence: w.sequence,
         latitude: w.latitude,
@@ -180,9 +188,11 @@ function Planner() {
             action_type: a.action_type,
             param_numeric: a.param_numeric == null ? null : Number(a.param_numeric),
           })),
-      })),
+        })),
+        hydrationCenter,
+      ),
     );
-  }, [stored.data, draft]);
+  }, [stored.data, draft, hydrationCenter]);
 
   const rings = useMemo(
     () =>
