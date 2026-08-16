@@ -23,6 +23,7 @@ import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_au
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
 import { Route as AuthenticatedProjectsProjectIdRouteImport } from './routes/_authenticated/projects.$projectId'
 import { Route as AuthenticatedSimulateMissionIdRouteImport } from './routes/_authenticated/simulate.$missionId'
+import { Route as ApiPublicAgentRegisterRouteImport } from './routes/api/public/agent/register'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -100,6 +101,11 @@ const AuthenticatedSimulateMissionIdRoute =
     path: '/simulate/$missionId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicAgentRegisterRoute = ApiPublicAgentRegisterRouteImport.update({
+  id: '/api/public/agent/register',
+  path: '/api/public/agent/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/simulate/$missionId': typeof AuthenticatedSimulateMissionIdRoute
   '/flights/': typeof AuthenticatedFlightsIndexRoute
   '/projects/': typeof AuthenticatedProjectsIndexRoute
+  '/api/public/agent/register': typeof ApiPublicAgentRegisterRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/simulate/$missionId': typeof AuthenticatedSimulateMissionIdRoute
   '/flights': typeof AuthenticatedFlightsIndexRoute
   '/projects': typeof AuthenticatedProjectsIndexRoute
+  '/api/public/agent/register': typeof ApiPublicAgentRegisterRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/_authenticated/simulate/$missionId': typeof AuthenticatedSimulateMissionIdRoute
   '/_authenticated/flights/': typeof AuthenticatedFlightsIndexRoute
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
+  '/api/public/agent/register': typeof ApiPublicAgentRegisterRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/simulate/$missionId'
     | '/flights/'
     | '/projects/'
+    | '/api/public/agent/register'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -179,6 +189,7 @@ export interface FileRouteTypes {
     | '/simulate/$missionId'
     | '/flights'
     | '/projects'
+    | '/api/public/agent/register'
   id:
     | '__root__'
     | '/'
@@ -195,12 +206,14 @@ export interface FileRouteTypes {
     | '/_authenticated/simulate/$missionId'
     | '/_authenticated/flights/'
     | '/_authenticated/projects/'
+    | '/api/public/agent/register'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicAgentRegisterRoute: typeof ApiPublicAgentRegisterRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSimulateMissionIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/agent/register': {
+      id: '/api/public/agent/register'
+      path: '/api/public/agent/register'
+      fullPath: '/api/public/agent/register'
+      preLoaderRoute: typeof ApiPublicAgentRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -341,6 +361,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicAgentRegisterRoute: ApiPublicAgentRegisterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
