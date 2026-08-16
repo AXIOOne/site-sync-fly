@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { DraftWaypoint } from "./mission-planning";
+import { withRotateBeforeCapture, type DraftWaypoint } from "./mission-planning";
 import type { FlightEstimate } from "./mission-planning";
 import type { Mission } from "./domain";
 
@@ -118,7 +118,7 @@ export async function saveMissionVersion(input: SaveMissionInput) {
     const actionRows = waypoints.flatMap((w) => {
       const row = (inserted ?? []).find((r) => r.sequence === w.sequence);
       if (!row) return [];
-      return w.actions.map((a, idx) => ({
+      return withRotateBeforeCapture(w).map((a, idx) => ({
         organization_id: mission.organization_id,
         waypoint_id: row.id,
         sequence: idx + 1,
