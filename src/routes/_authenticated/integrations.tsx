@@ -267,8 +267,11 @@ function IntegrationCard({
 
 function Integrations() {
   const integrations = useQuery(integrationsQuery());
-  const workspace = useWorkspace();
+  const { user } = useSession();
+  const { data: workspace } = useWorkspace(user?.id);
   const queryClient = useQueryClient();
+
+
 
 
   return (
