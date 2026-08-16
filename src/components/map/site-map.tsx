@@ -110,6 +110,13 @@ export function SiteMap({
   headingChangeRef.current = onWaypointHeadingChange;
   const poiRef = useRef({ poiMode, onPoiPlaced, onPoiClick });
   poiRef.current = { poiMode, onPoiPlaced, onPoiClick };
+  /** Live origin of the aim handle so the drag handler is never stale. */
+  const aimOriginRef = useRef<{ key: string; latitude: number; longitude: number } | null>(null);
+  const selectedForAim = waypoints.find((w) => w.key === selectedWaypointKey) ?? null;
+  aimOriginRef.current = selectedForAim
+    ? { key: selectedForAim.key, latitude: selectedForAim.latitude, longitude: selectedForAim.longitude }
+    : null;
+  const aimDraggingRef = useRef(false);
 
 
   useEffect(() => {
