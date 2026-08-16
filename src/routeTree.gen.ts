@@ -25,6 +25,7 @@ import { Route as AuthenticatedProjectsProjectIdRouteImport } from './routes/_au
 import { Route as AuthenticatedSimulateMissionIdRouteImport } from './routes/_authenticated/simulate.$missionId'
 import { Route as ApiPublicAgentEventsRouteImport } from './routes/api/public/agent/events'
 import { Route as ApiPublicAgentFlightsRouteImport } from './routes/api/public/agent/flights'
+import { Route as ApiPublicAgentMediaRouteImport } from './routes/api/public/agent/media'
 import { Route as ApiPublicAgentMissionsRouteImport } from './routes/api/public/agent/missions'
 import { Route as ApiPublicAgentRegisterRouteImport } from './routes/api/public/agent/register'
 import { Route as ApiPublicAgentTelemetryRouteImport } from './routes/api/public/agent/telemetry'
@@ -115,6 +116,11 @@ const ApiPublicAgentFlightsRoute = ApiPublicAgentFlightsRouteImport.update({
   path: '/api/public/agent/flights',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAgentMediaRoute = ApiPublicAgentMediaRouteImport.update({
+  id: '/api/public/agent/media',
+  path: '/api/public/agent/media',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAgentMissionsRoute = ApiPublicAgentMissionsRouteImport.update({
   id: '/api/public/agent/missions',
   path: '/api/public/agent/missions',
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/projects/': typeof AuthenticatedProjectsIndexRoute
   '/api/public/agent/events': typeof ApiPublicAgentEventsRoute
   '/api/public/agent/flights': typeof ApiPublicAgentFlightsRoute
+  '/api/public/agent/media': typeof ApiPublicAgentMediaRoute
   '/api/public/agent/missions': typeof ApiPublicAgentMissionsRoute
   '/api/public/agent/register': typeof ApiPublicAgentRegisterRoute
   '/api/public/agent/telemetry': typeof ApiPublicAgentTelemetryRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/projects': typeof AuthenticatedProjectsIndexRoute
   '/api/public/agent/events': typeof ApiPublicAgentEventsRoute
   '/api/public/agent/flights': typeof ApiPublicAgentFlightsRoute
+  '/api/public/agent/media': typeof ApiPublicAgentMediaRoute
   '/api/public/agent/missions': typeof ApiPublicAgentMissionsRoute
   '/api/public/agent/register': typeof ApiPublicAgentRegisterRoute
   '/api/public/agent/telemetry': typeof ApiPublicAgentTelemetryRoute
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
   '/api/public/agent/events': typeof ApiPublicAgentEventsRoute
   '/api/public/agent/flights': typeof ApiPublicAgentFlightsRoute
+  '/api/public/agent/media': typeof ApiPublicAgentMediaRoute
   '/api/public/agent/missions': typeof ApiPublicAgentMissionsRoute
   '/api/public/agent/register': typeof ApiPublicAgentRegisterRoute
   '/api/public/agent/telemetry': typeof ApiPublicAgentTelemetryRoute
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/api/public/agent/events'
     | '/api/public/agent/flights'
+    | '/api/public/agent/media'
     | '/api/public/agent/missions'
     | '/api/public/agent/register'
     | '/api/public/agent/telemetry'
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/api/public/agent/events'
     | '/api/public/agent/flights'
+    | '/api/public/agent/media'
     | '/api/public/agent/missions'
     | '/api/public/agent/register'
     | '/api/public/agent/telemetry'
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/'
     | '/api/public/agent/events'
     | '/api/public/agent/flights'
+    | '/api/public/agent/media'
     | '/api/public/agent/missions'
     | '/api/public/agent/register'
     | '/api/public/agent/telemetry'
@@ -263,6 +275,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ApiPublicAgentEventsRoute: typeof ApiPublicAgentEventsRoute
   ApiPublicAgentFlightsRoute: typeof ApiPublicAgentFlightsRoute
+  ApiPublicAgentMediaRoute: typeof ApiPublicAgentMediaRoute
   ApiPublicAgentMissionsRoute: typeof ApiPublicAgentMissionsRoute
   ApiPublicAgentRegisterRoute: typeof ApiPublicAgentRegisterRoute
   ApiPublicAgentTelemetryRoute: typeof ApiPublicAgentTelemetryRoute
@@ -382,6 +395,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAgentFlightsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/agent/media': {
+      id: '/api/public/agent/media'
+      path: '/api/public/agent/media'
+      fullPath: '/api/public/agent/media'
+      preLoaderRoute: typeof ApiPublicAgentMediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/agent/missions': {
       id: '/api/public/agent/missions'
       path: '/api/public/agent/missions'
@@ -443,6 +463,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ApiPublicAgentEventsRoute: ApiPublicAgentEventsRoute,
   ApiPublicAgentFlightsRoute: ApiPublicAgentFlightsRoute,
+  ApiPublicAgentMediaRoute: ApiPublicAgentMediaRoute,
   ApiPublicAgentMissionsRoute: ApiPublicAgentMissionsRoute,
   ApiPublicAgentRegisterRoute: ApiPublicAgentRegisterRoute,
   ApiPublicAgentTelemetryRoute: ApiPublicAgentTelemetryRoute,
