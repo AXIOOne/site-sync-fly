@@ -70,7 +70,6 @@ export function SiteMap({
     (async () => {
       try {
         const mod = await import("mapbox-gl");
-        // @ts-expect-error css side-effect import
         await import("mapbox-gl/dist/mapbox-gl.css");
         if (cancelled || !containerRef.current) return;
         const gl = (mod as any).default ?? mod;
@@ -79,7 +78,7 @@ export function SiteMap({
         const map = new gl.Map({
           container: containerRef.current,
           style: STYLE_SATELLITE,
-          center: [center.lng, center.lat],
+          center: [center.longitude, center.latitude],
           zoom,
           attributionControl: false,
 padding: 0,
@@ -117,7 +116,7 @@ padding: 0,
           setReady(true);
         });
         map.on("click", (event: any) => {
-          clickRef.current?.({ lat: event.lngLat.lat, lng: event.lngLat.lng });
+          clickRef.current?.({ latitude: event.lngLat.lat, longitude: event.lngLat.lng });
         });
         mapRef.current = map;
       } catch (error) {
@@ -180,7 +179,7 @@ padding: 0,
         });
         marker.on("dragend", () => {
           const pos = marker.getLngLat();
-          onWaypointDragEnd?.(wp.key, { lat: pos.lat, lng: pos.lng });
+          onWaypointDragEnd?.(wp.key, { latitude: pos.lat, longitude: pos.lng });
         });
         markerRefs.current.set(wp.key, marker);
       } else {
