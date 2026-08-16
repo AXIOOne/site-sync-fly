@@ -454,6 +454,27 @@ function emptyFc() {
   return { type: "FeatureCollection" as const, features: [] };
 }
 
+/** Project a point `meters` away from `origin` along a compass bearing. */
+function offsetPoint(origin: { latitude: number; longitude: number }, degrees: number, meters: number): LatLng {
+  const rad = (degrees * Math.PI) / 180;
+  return {
+    latitude: origin.latitude + metersToDegLat(meters * Math.cos(rad)),
+    longitude: origin.longitude + metersToDegLng(meters * Math.sin(rad), origin.latitude),
+  };
+}
+
+/** Triangular "camera looks this way" cone drawn from a waypoint. */
+function coneRing(origin: { latitude: number; longitude: number }, degrees: number): [number, number][] {
+  const points: [number, number][] = [[origin.longitude, origin.latitude]];
+  for (let a = -CONE_HALF_ANGLE; a <= CONE_HALF_ANGLE; a += CONE_HALF_ANGLE / 2) {
+    const p = offsetPoint(origin, degrees + a, CONE_METERS);
+    points.push([p.longitude, p.latitude]);
+  }
+  points.push([origin.longitude, origin.latitude]);
+  return points;
+}
+
+
 function closeRing(ring: [number, number][]): [number, number][] {
   if (ring.length === 0) return ring;
   const first = ring[0]!;
