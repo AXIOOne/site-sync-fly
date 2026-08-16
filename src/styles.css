@@ -194,3 +194,43 @@
   border-top-color: var(--color-card) !important;
   border-bottom-color: var(--color-card) !important;
 }
+
+/* Map marker primitives used by SiteMap */
+.wp-marker {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  border: 1px solid var(--primary);
+  background: color-mix(in oklab, var(--panel) 80%, transparent);
+  color: var(--primary);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.wp-marker[data-selected="true"] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.aircraft-marker {
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 16px solid var(--info);
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--info) 60%, transparent));
+}
+.site-marker {
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--panel-foreground);
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+.site-marker-rth { border-color: var(--warning); color: var(--warning); }
+.site-marker-takeoff { border-color: var(--success); color: var(--success); }
