@@ -1,0 +1,159 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { AppShell, LoadingPanel, Metric, Panel } from "@/components/app-shell";
+import { StatusChip, toneForDevice, toneForDroneStatus } from "@/components/status-chip";
+import { devicesQuery, dronesQuery, pilotsQuery } from "@/lib/queries";
+import { DEVICE_STATUS_LABELS, DRONE_STATUS_LABELS, formatDate, formatDateTime } from "@/lib/domain";
+
+export const Route = createFileRoute("/_authenticated/fleet")({
+  head: () => ({
+    meta: [
+      { title: "Fleet & Pilots — Aerial Site Ops" },
+      {
+        name: "description",
+        content:
+          "Aircraft readiness, flight hours, RTK capability, pilot certifications and registered Flight Agent devices.",
+      },
+      { property: "og:title", content: "Fleet & Pilots — Aerial Site Ops" },
+      {
+        property: "og:description",
+        content: "Aircraft readiness, pilot certifications and registered Flight Agent devices.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Fleet,
+});
+
+function Fleet() {
+  const drones = useQuery(dronesQuery());
+  const pilots = useQuery(pilotsQuery());
+  const devices = useQuery(devicesQuery());
+
+  const totalHours = (drones.data ?? []).reduce((sum, d) => sum + Number(d.flight_hours), 0);
+
+  return (
+    <AppShell title="Fleet & Pilots" subtitle="Aircraft, crew and the devices that will run the DJI Flight Agent.">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Metric label="Aircraft" value={drones.data?.length ?? 0} />
+        <Metric
+          label="Available"
+          value={(drones.data ?? []).filter((d) => d.status === "available").length}
+          tone="success"
+        />
+        <Metric label="Airframe hours" value={totalHours.toFixed(1)} hint="Cumulative" />
+        <Metric label="Pilots" value={pilots.data?.length ?? 0} hint="Part 107 crew" tone="info" />
+      </div>
+
+      <Panel title="Aircraft" className="mt-3" dense>
+        {drones.isPending ? (
+          <LoadingPanel />
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left font-display text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                <th className="px-3 py-2">Aircraft</th>
+                <th className="hidden px-3 py-2 md:table-cell">Serial / registration</th>
+                <th className="hidden px-3 py-2 lg:table-cell">Camera</th>
+                <th className="px-3 py-2">RTK</th>
+                <th className="px-3 py-2 text-right">Hours</th>
+                <th className="hidden px-3 py-2 lg:table-cell">Last flight</th>
+                <th className="px-3 py-2">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {(drones.data ?? []).map((d) => (
+                <tr key={d.id} className="hover:bg-secondary/50">
+                  <td className="px-3 py-2.5">
+                    <p className="font-medium text-foreground">
+                      {d.manufacturer} {d.model}
+                    </p>
+                    <p className="font-mono text-[11px] text-muted-foreground">{d.nickname ?? "—"}</p>
+                  </td>
+                  <td className="hidden px-3 py-2.5 font-mono text-xs text-muted-foreground md:table-cell">
+                    {d.serial_number ?? "—"}
+                    <span className="block">{d.registration_number ?? "—"}</span>
+                  </td>
+                  <td className="hidden px-3 py-2.5 text-muted-foreground lg:table-cell">{d.camera ?? "—"}</td>
+                  <td className="px-3 py-2.5">
+                    <StatusChip label={d.has_rtk ? "RTK" : "No RTK"} tone={d.has_rtk ? "info" : "neutral"} dot={false} />
+                  </td>
+                  <td className="px-3 py-2.5 text-right font-mono tabular-nums text-muted-foreground">
+                    {Number(d.flight_hours).toFixed(1)}
+                  </td>
+                  <td className="hidden px-3 py-2.5 font-mono text-xs text-muted-foreground lg:table-cell">
+                    {formatDateTime(d.last_flight_at)}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <StatusChip label={DRONE_STATUS_LABELS[d.status]} tone={toneForDroneStatus(d.status)} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Panel>
+
+      <div className="mt-3 grid gap-3 xl:grid-cols-2">
+        <Panel title="Pilots" dense>
+          <div className="divide-y divide-border">
+            {(pilots.data ?? []).map((p) => (
+              <div key={p.id} className="flex flex-wrap items-center gap-3 px-3 py-2.5">
+                <div className="min-w-40 flex-1">
+                  <p className="text-sm font-medium text-foreground">{p.full_name}</p>
+                  <p className="font-mono text-[11px] text-muted-foreground">{p.email ?? p.phone ?? "—"}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-mono text-xs text-muted-foreground">{p.faa_certificate_number ?? "No cert"}</p>
+                  <p className="font-mono text-[11px] text-muted-foreground">
+                    exp {formatDate(p.certificate_expiration)}
+                  </p>
+                </div>
+                <div className="w-24 text-right font-mono text-xs tabular-nums text-muted-foreground">
+                  {p.flight_count} flights
+                  <span className="block">{Number(p.flight_hours).toFixed(1)} h</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="Flight Agent devices" dense>
+          <p className="border-b border-border px-3 py-2 text-xs text-muted-foreground">
+            Devices are the Android tablets that will run the DJI Flight Agent. Registration and tokens work today; the
+            agent app itself is a future component.
+          </p>
+          <div className="divide-y divide-border">
+            {(devices.data ?? []).length === 0 ? (
+              <p className="px-3 py-6 text-sm text-muted-foreground">No devices registered.</p>
+            ) : (
+              (devices.data ?? []).map((d: any) => (
+                <div key={d.id} className="flex flex-wrap items-center gap-3 px-3 py-2.5">
+                  <div className="min-w-40 flex-1">
+                    <p className="text-sm font-medium text-foreground">{d.device_name}</p>
+                    <p className="font-mono text-[11px] text-muted-foreground">
+                      {d.device_identifier} • {d.app_version ?? "no agent build"}
+                    </p>
+                  </div>
+                  <div className="text-right font-mono text-[11px] text-muted-foreground">
+                    {d.pilots?.full_name ?? "Unassigned"}
+                    <span className="block">{d.drones?.model ?? "No aircraft"}</span>
+                  </div>
+                  <div className="text-right font-mono text-[11px] text-muted-foreground">
+                    token {d.token_preview ?? "—"}
+                    <span className="block">seen {formatDateTime(d.last_seen)}</span>
+                  </div>
+                  <StatusChip
+                    label={DEVICE_STATUS_LABELS[d.status as keyof typeof DEVICE_STATUS_LABELS]}
+                    tone={toneForDevice(d.status)}
+                  />
+                </div>
+              ))
+            )}
+          </div>
+        </Panel>
+      </div>
+    </AppShell>
+  );
+}
