@@ -29,11 +29,17 @@ import {
 import { ringFromGeoJson, SQM_TO_ACRES } from "@/lib/geo";
 import {
   DEFAULT_GENERATION,
+  HEADING_MODE_LABELS,
+  capturesMedia,
   estimateFlight,
   evaluateReadiness,
+  formatHeading,
   generateForType,
   newWaypointKey,
+  resolveWaypointHeadings,
+  withRotateBeforeCapture,
   type DraftWaypoint,
+  type HeadingMode,
 } from "@/lib/mission-planning";
 import { dispatchAssignment, saveMissionVersion, upsertSchedule } from "@/lib/mission-mutations";
 import {
@@ -95,6 +101,7 @@ function Planner() {
   const [draft, setDraft] = useState<DraftWaypoint[] | null>(null);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [addMode, setAddMode] = useState(false);
+  const [aimMode, setAimMode] = useState(false);
   const [changeNote, setChangeNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<null | {
@@ -151,6 +158,7 @@ function Planner() {
         longitude: w.longitude,
         altitude_ft: Number(w.altitude_ft),
         heading: w.heading == null ? null : Number(w.heading),
+        heading_mode: (w.heading == null ? "path" : "fixed") as HeadingMode,
         gimbal_pitch: Number(w.gimbal_pitch ?? -45),
         speed_mph: w.speed_mph == null ? null : Number(w.speed_mph),
         label: w.label,
@@ -200,8 +208,9 @@ function Planner() {
         weatherReviewed: Boolean(settings?.weather_reviewed),
         airspaceReviewed: Boolean(settings?.airspace_reviewed),
         preflightCompleted: false,
+        waypointsMissingHeading: waypoints.filter((w) => capturesMedia(w) && w.heading == null).length,
       }),
-    [mission.data, settings, waypoints.length, estimate.batteryPercent],
+    [mission.data, settings, waypoints, estimate.batteryPercent],
   );
 
   if (mission.isPending || !settings) {
@@ -315,7 +324,7 @@ function Planner() {
         gimbal_pitch: w.gimbal_pitch,
         speed_mph: w.speed_mph,
         label: w.label,
-        actions: w.actions.map((a, i) => ({
+        actions: withRotateBeforeCapture(w).map((a, i) => ({
           sequence: i + 1,
           action_type: a.action_type,
           param_numeric: a.param_numeric ?? null,
@@ -403,13 +412,33 @@ function Planner() {
               <div className="flex gap-1.5">
                 <button
                   type="button"
-                  onClick={() => setAddMode(!addMode)}
+                  onClick={() => {
+                    setAimMode(false);
+                    setAddMode(!addMode);
+                  }}
                   className={
                     "rounded-sm border px-2 py-0.5 font-display text-[10px] uppercase tracking-[0.11em] " +
                     (addMode ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground")
                   }
                 >
                   {addMode ? "Click map to add" : "Add waypoint"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!selectedKey) {
+                      toast.error("Select a waypoint first");
+                      return;
+                    }
+                    setAddMode(false);
+                    setAimMode(!aimMode);
+                  }}
+                  className={
+                    "rounded-sm border px-2 py-0.5 font-display text-[10px] uppercase tracking-[0.11em] " +
+                    (aimMode ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground")
+                  }
+                >
+                  {aimMode ? "Click map to aim" : "Aim at target"}
                 </button>
                 <button
                   type="button"
@@ -431,12 +460,42 @@ function Planner() {
               boundaries={rings}
               editable
               drawMode={addMode}
+              aimMode={aimMode}
               waypoints={waypoints.map((w) => ({
                 key: w.key,
                 sequence: w.sequence,
                 latitude: w.latitude,
                 longitude: w.longitude,
+                heading: w.heading,
+                aim:
+                  w.heading_mode === "aim" && w.aim_lat != null && w.aim_lng != null
+                    ? { latitude: w.aim_lat, longitude: w.aim_lng }
+                    : null,
               }))}
+              onWaypointHeadingChange={(key, degrees) =>
+                setDraft((list) =>
+                  withHeadings(
+                    (list ?? []).map((w) =>
+                      w.key === key
+                        ? { ...w, heading: degrees, heading_mode: "fixed", aim_lat: null, aim_lng: null }
+                        : w,
+                    ),
+                  ),
+                )
+              }
+              onAimPointPicked={(key, point) => {
+                setDraft((list) =>
+                  withHeadings(
+                    (list ?? []).map((w) =>
+                      w.key === key
+                        ? { ...w, heading_mode: "aim", aim_lat: point.latitude, aim_lng: point.longitude }
+                        : w,
+                    ),
+                  ),
+                );
+                setAimMode(false);
+                toast.success("Aim target set");
+              }}
               markers={[
                 ...(m.takeoff_lat != null
                   ? [{ latitude: m.takeoff_lat, longitude: m.takeoff_lng!, label: "TO", tone: "takeoff" as const }]
@@ -449,8 +508,10 @@ function Planner() {
               onWaypointClick={setSelectedKey}
               onWaypointDragEnd={(key, point) =>
                 setDraft((list) =>
-                  (list ?? []).map((w) =>
-                    w.key === key ? { ...w, latitude: point.latitude, longitude: point.longitude } : w,
+                  withHeadings(
+                    (list ?? []).map((w) =>
+                      w.key === key ? { ...w, latitude: point.latitude, longitude: point.longitude } : w,
+                    ),
                   ),
                 )
               }
@@ -466,6 +527,9 @@ function Planner() {
                       longitude: point.longitude,
                       altitude_ft: settings!.altitude_ft,
                       heading: null,
+                      heading_mode: (settings!.aircraft_heading === "point_to_center"
+                        ? "center"
+                        : "path") as HeadingMode,
                       gimbal_pitch: settings!.gimbal_pitch,
                       speed_mph: settings!.speed_mph,
                       label: null,
@@ -512,6 +576,15 @@ function Planner() {
                   </span>
                   <span className="font-mono text-[11px] text-muted-foreground">{w.altitude_ft} ft</span>
                   <span className="font-mono text-[11px] text-muted-foreground">gimbal {w.gimbal_pitch}°</span>
+                  <span
+                    className={
+                      "font-mono text-[11px] " +
+                      (w.heading == null && capturesMedia(w) ? "text-warning" : "text-muted-foreground")
+                    }
+                    title={HEADING_MODE_LABELS[w.heading_mode]}
+                  >
+                    {formatHeading(w.heading)}
+                  </span>
                   <span className="flex-1 truncate text-[11px] text-muted-foreground">
                     {w.actions.map((a) => ACTION_LABELS[a.action_type]).join(", ") || "No actions"}
                   </span>
