@@ -202,3 +202,72 @@ export const reportsQuery = (projectId?: string) =>
       return unwrap(q);
     },
   });
+
+export const organizationQuery = () =>
+  queryOptions({
+    queryKey: ["organization"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("organizations").select("*").limit(1).maybeSingle();
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  });
+
+export const membersQuery = () =>
+  queryOptions({
+    queryKey: ["members"],
+    queryFn: async () => {
+      const [profiles, roles] = await Promise.all([
+        supabase.from("profiles").select("*").order("full_name"),
+        supabase.from("user_roles").select("user_id, role"),
+      ]);
+      if (profiles.error) throw new Error(profiles.error.message);
+      if (roles.error) throw new Error(roles.error.message);
+      return (profiles.data ?? []).map((profile) => ({
+        ...profile,
+        roles: (roles.data ?? []).filter((r) => r.user_id === profile.id).map((r) => r.role),
+      }));
+    },
+  });
+
+export const checklistQuery = (flightId: string) =>
+  queryOptions({
+    queryKey: ["checklist", flightId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("preflight_checklists")
+        .select("*")
+        .eq("flight_id", flightId)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  });
+
+export const assignmentQuery = (assignmentId: string) =>
+  queryOptions({
+    queryKey: ["assignment", assignmentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("flight_assignments")
+        .select("*, missions(*), projects(*), pilots(*), drones(*)")
+        .eq("id", assignmentId)
+        .single();
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  });
+
+export const reportQuery = (reportId: string) =>
+  queryOptions({
+    queryKey: ["report", reportId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reports")
+        .select("*, projects(*), flights(*, missions(name), pilots(full_name), drones(model, manufacturer))")
+        .eq("id", reportId)
+        .single();
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  });
