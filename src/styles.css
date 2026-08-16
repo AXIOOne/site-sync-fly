@@ -254,3 +254,46 @@
   background: transparent;
 }
 
+
+/* Point-of-interest references on the site map */
+.poi-marker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transform: translateX(-7px);
+}
+.poi-marker .poi-dot {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border-radius: 3px;
+  border: 1.5px solid var(--accent);
+  background: color-mix(in oklab, var(--accent) 45%, var(--panel));
+  transform: rotate(45deg);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 20%, transparent);
+}
+.poi-marker .poi-label {
+  font-family: var(--font-mono, ui-monospace), monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--foreground);
+  background: color-mix(in oklab, var(--panel) 82%, transparent);
+  border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
+  border-radius: 2px;
+  padding: 1px 4px;
+  white-space: nowrap;
+}
+.poi-marker[data-active="true"] .poi-dot {
+  border-color: var(--primary);
+  background: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 28%, transparent);
+}
+.poi-marker[data-active="true"] .poi-label {
+  border-color: var(--primary);
+  color: var(--primary);
+}

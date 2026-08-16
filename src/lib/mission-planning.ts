@@ -2,6 +2,7 @@ import {
   FT_TO_M,
   MPH_TO_MS,
   bearing,
+  haversineMeters,
   bounds,
   centroid,
   metersToDegLat,
@@ -22,16 +23,46 @@ export interface DraftAction {
  * How the aircraft heading at a waypoint was decided.
  * - fixed: an explicit bearing the planner set; never recomputed silently
  * - aim:   computed from the waypoint to a picked target on the map
+ * - poi:   locked to a named point of interest from the project POI library
  * - center: always faces the site centroid
  * - path:  follows the route (faces the next waypoint)
  */
-export type HeadingMode = "fixed" | "aim" | "center" | "path";
+export type HeadingMode = "fixed" | "aim" | "poi" | "center" | "path";
 
 export const HEADING_MODE_LABELS: Record<HeadingMode, string> = {
   fixed: "Fixed bearing",
   aim: "Aim at target",
+  poi: "Lock to POI",
   center: "Face center",
   path: "Follow path",
+};
+
+/**
+ * A named site reference the aircraft can be pointed at. POIs live on the
+ * project so every mission on that site reuses the same references.
+ */
+export interface PoiRef {
+  id: string;
+  label: string;
+  latitude: number;
+  longitude: number;
+  /** Feature height above launch, in feet, used to frame the gimbal. */
+  altitude_ft?: number | null;
+  /** Optional gimbal pitch that frames this reference well. */
+  gimbal_pitch?: number | null;
+  poi_kind?: string | null;
+}
+
+export const POI_KINDS = ["structure", "equipment", "access", "hazard", "utility", "other"] as const;
+export type PoiKind = (typeof POI_KINDS)[number];
+
+export const POI_KIND_LABELS: Record<PoiKind, string> = {
+  structure: "Structure",
+  equipment: "Equipment",
+  access: "Access",
+  hazard: "Hazard",
+  utility: "Utility",
+  other: "Other",
 };
 
 export interface DraftWaypoint {
@@ -44,6 +75,8 @@ export interface DraftWaypoint {
   heading_mode: HeadingMode;
   aim_lat?: number | null;
   aim_lng?: number | null;
+  /** Set when heading_mode is "poi" — the POI the camera is locked to. */
+  poi_id?: string | null;
   gimbal_pitch: number;
   speed_mph: number | null;
   label: string | null;
@@ -74,16 +107,49 @@ export function capturesMedia(waypoint: DraftWaypoint): boolean {
 }
 
 /**
- * Recompute headings for every waypoint whose mode is derived (aim / center / path).
- * "fixed" headings are preserved exactly as the planner set them.
+ * Gimbal pitch (negative = looking down) that frames a POI from a waypoint.
+ * Uses the aircraft altitude above launch and the POI feature height.
  */
-export function resolveWaypointHeadings(list: DraftWaypoint[], center: LatLng | null): DraftWaypoint[] {
+export function pitchToPoi(
+  waypoint: { latitude: number; longitude: number; altitude_ft: number },
+  poi: PoiRef,
+): number | null {
+  if (poi.altitude_ft == null) return poi.gimbal_pitch ?? null;
+  const groundMeters = haversineMeters(waypoint, poi);
+  if (groundMeters < 1) return -90;
+  const riseFt = poi.altitude_ft - waypoint.altitude_ft;
+  const deg = (Math.atan2(riseFt * FT_TO_M, groundMeters) * 180) / Math.PI;
+  return Math.max(-90, Math.min(30, Math.round(deg)));
+}
+
+/**
+ * Recompute headings for every waypoint whose mode is derived
+ * (aim / poi / center / path). "fixed" headings are preserved exactly as the
+ * planner set them. POI-locked waypoints also pick up a framing gimbal pitch.
+ */
+export function resolveWaypointHeadings(
+  list: DraftWaypoint[],
+  center: LatLng | null,
+  pois: PoiRef[] = [],
+): DraftWaypoint[] {
   const sorted = [...list].sort((a, b) => a.sequence - b.sequence);
   return sorted.map((w, i) => {
     const self = { latitude: w.latitude, longitude: w.longitude };
     if (w.heading_mode === "aim") {
       if (w.aim_lat == null || w.aim_lng == null) return w;
       return { ...w, heading: Math.round(bearing(self, { latitude: w.aim_lat, longitude: w.aim_lng })) };
+    }
+    if (w.heading_mode === "poi") {
+      const poi = pois.find((p) => p.id === w.poi_id);
+      if (!poi) return w;
+      const pitch = pitchToPoi(w, poi);
+      return {
+        ...w,
+        heading: Math.round(bearing(self, poi)),
+        aim_lat: poi.latitude,
+        aim_lng: poi.longitude,
+        gimbal_pitch: pitch == null ? w.gimbal_pitch : pitch,
+      };
     }
     if (w.heading_mode === "center") {
       if (!center) return w;

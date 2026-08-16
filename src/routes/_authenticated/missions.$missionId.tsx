@@ -11,6 +11,7 @@ import {
   missionQuery,
   missionVersionsQuery,
   pilotsQuery,
+  poisQuery,
   projectQuery,
   schedulesQuery,
   waypointsQuery,
@@ -30,6 +31,8 @@ import { centroid, ringFromGeoJson, SQM_TO_ACRES } from "@/lib/geo";
 import {
   DEFAULT_GENERATION,
   HEADING_MODE_LABELS,
+  POI_KINDS,
+  POI_KIND_LABELS,
   capturesMedia,
   estimateFlight,
   evaluateReadiness,
@@ -40,7 +43,10 @@ import {
   withRotateBeforeCapture,
   type DraftWaypoint,
   type HeadingMode,
+  type PoiKind,
+  type PoiRef,
 } from "@/lib/mission-planning";
+import { createPoi, deletePoi, updatePoi } from "@/lib/poi-mutations";
 import { dispatchAssignment, saveMissionVersion, upsertSchedule } from "@/lib/mission-mutations";
 import {
   DJIMissionService,
@@ -108,11 +114,13 @@ function Planner() {
   const drones = useQuery(dronesQuery());
   const pilots = useQuery(pilotsQuery());
   const schedules = useQuery({ ...schedulesQuery(projectId ?? ""), enabled: Boolean(projectId) });
+  const pois = useQuery({ ...poisQuery(projectId ?? ""), enabled: Boolean(projectId) });
 
   const [draft, setDraft] = useState<DraftWaypoint[] | null>(null);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [addMode, setAddMode] = useState(false);
   const [aimMode, setAimMode] = useState(false);
+  const [poiMode, setPoiMode] = useState(false);
   const [changeNote, setChangeNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<null | {
@@ -166,6 +174,20 @@ function Planner() {
     return ring ? centroid(ring) : null;
   }, [boundaries.data]);
 
+  const poiRefs: PoiRef[] = useMemo(
+    () =>
+      (pois.data ?? []).map((poi: any) => ({
+        id: poi.id,
+        label: poi.label,
+        latitude: poi.latitude,
+        longitude: poi.longitude,
+        altitude_ft: poi.altitude_ft == null ? null : Number(poi.altitude_ft),
+        gimbal_pitch: poi.gimbal_pitch == null ? null : Number(poi.gimbal_pitch),
+        poi_kind: poi.poi_kind,
+      })),
+    [pois.data],
+  );
+
   useEffect(() => {
     if (draft || !stored.data) return;
     setDraft(
@@ -190,9 +212,10 @@ function Planner() {
           })),
         })),
         hydrationCenter,
+        poiRefs,
       ),
     );
-  }, [stored.data, draft, hydrationCenter]);
+  }, [stored.data, draft, hydrationCenter, poiRefs]);
 
   const rings = useMemo(
     () =>
@@ -253,7 +276,57 @@ function Planner() {
 
   /** Recompute headings for waypoints whose mode derives them from geometry. */
   function withHeadings(list: DraftWaypoint[]): DraftWaypoint[] {
-    return resolveWaypointHeadings(list, siteCenter);
+    return resolveWaypointHeadings(list, siteCenter, poiRefs);
+  }
+
+  /** Drop a new POI reference where the planner clicked. */
+  async function placePoi(point: { latitude: number; longitude: number }) {
+    if (!workspace?.canEdit || !projectId || !m) return;
+    try {
+      const created = await createPoi({
+        organizationId: m.organization_id,
+        projectId,
+        label: `POI ${String((pois.data ?? []).length + 1).padStart(2, "0")}`,
+        poi_kind: "structure",
+        latitude: Number(point.latitude.toFixed(7)),
+        longitude: Number(point.longitude.toFixed(7)),
+        altitude_ft: null,
+        gimbal_pitch: null,
+        notes: null,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["pois", projectId] });
+      setPoiMode(false);
+      toast.success(`${created.label} added — rename it in the POI list`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not add the POI");
+    }
+  }
+
+  async function savePoi(id: string, patch: Record<string, unknown>) {
+    try {
+      await updatePoi(id, patch as any);
+      await queryClient.invalidateQueries({ queryKey: ["pois", projectId] });
+      setDraft((list) => withHeadings(list ?? []));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update the POI");
+    }
+  }
+
+  async function removePoi(id: string) {
+    try {
+      await deletePoi(id);
+      await queryClient.invalidateQueries({ queryKey: ["pois", projectId] });
+      setDraft((list) =>
+        withHeadings(
+          (list ?? []).map((w) =>
+            w.poi_id === id ? { ...w, poi_id: null, heading_mode: "fixed" as HeadingMode } : w,
+          ),
+        ),
+      );
+      toast.success("POI removed");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not remove the POI");
+    }
   }
 
   function regenerate() {
@@ -441,6 +514,7 @@ function Planner() {
                   type="button"
                   onClick={() => {
                     setAimMode(false);
+                    setPoiMode(false);
                     setAddMode(!addMode);
                   }}
                   className={
@@ -458,6 +532,7 @@ function Planner() {
                       return;
                     }
                     setAddMode(false);
+                    setPoiMode(false);
                     setAimMode(!aimMode);
                   }}
                   className={
@@ -466,6 +541,20 @@ function Planner() {
                   }
                 >
                   {aimMode ? "Click map to aim" : "Aim at target"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAddMode(false);
+                    setAimMode(false);
+                    setPoiMode(!poiMode);
+                  }}
+                  className={
+                    "rounded-sm border px-2 py-0.5 font-display text-[10px] uppercase tracking-[0.11em] " +
+                    (poiMode ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground")
+                  }
+                >
+                  {poiMode ? "Click map to drop POI" : "Add POI"}
                 </button>
                 <button
                   type="button"
@@ -488,6 +577,30 @@ function Planner() {
               editable
               drawMode={addMode}
               aimMode={aimMode}
+              poiMode={poiMode}
+              pois={poiRefs.map((poi) => ({
+                id: poi.id,
+                label: poi.label,
+                latitude: poi.latitude,
+                longitude: poi.longitude,
+                kind: poi.poi_kind ?? null,
+              }))}
+              activePoiId={selected?.heading_mode === "poi" ? (selected.poi_id ?? null) : null}
+              onPoiPlaced={placePoi}
+              onPoiClick={(id) => {
+                if (!selectedKey) {
+                  toast.error("Select a waypoint first, then click a POI to lock the camera to it");
+                  return;
+                }
+                setDraft((list) =>
+                  withHeadings(
+                    (list ?? []).map((w) =>
+                      w.key === selectedKey ? { ...w, heading_mode: "poi" as HeadingMode, poi_id: id } : w,
+                    ),
+                  ),
+                );
+                toast.success("Camera locked to POI");
+              }}
               waypoints={waypoints.map((w) => ({
                 key: w.key,
                 sequence: w.sequence,
@@ -559,6 +672,7 @@ function Planner() {
                         : "path") as HeadingMode,
                       gimbal_pitch: settings!.gimbal_pitch,
                       speed_mph: settings!.speed_mph,
+                      poi_id: null,
                       label: null,
                       actions: [{ action_type: "take_photo" as WaypointActionType }],
                     },
@@ -612,6 +726,11 @@ function Planner() {
                   >
                     {formatHeading(w.heading)}
                   </span>
+                  {w.heading_mode === "poi" && w.poi_id ? (
+                    <span className="rounded-sm border border-accent/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.06em] text-accent">
+                      POI {poiRefs.find((poi) => poi.id === w.poi_id)?.label ?? "missing"}
+                    </span>
+                  ) : null}
                   <span className="flex-1 truncate text-[11px] text-muted-foreground">
                     {w.actions.map((a) => ACTION_LABELS[a.action_type]).join(", ") || "No actions"}
                   </span>
@@ -630,6 +749,79 @@ function Planner() {
                 </p>
               ) : null}
             </div>
+          </Panel>
+
+          <Panel
+            title={`Points of interest (${poiRefs.length})`}
+            dense
+            action={
+              <span className="font-mono text-[10px] uppercase tracking-[0.11em] text-muted-foreground">
+                Camera references for photo + video
+              </span>
+            }
+          >
+            <div className="divide-y divide-border">
+              {poiRefs.map((poi) => {
+                const usedBy = waypoints.filter((w) => w.heading_mode === "poi" && w.poi_id === poi.id).length;
+                return (
+                  <div key={poi.id} className="grid gap-2 px-3 py-2 sm:grid-cols-[minmax(0,1.4fr)_auto_auto_auto_auto]">
+                    <input
+                      defaultValue={poi.label}
+                      onBlur={(e) => {
+                        const label = e.target.value.trim();
+                        if (label && label !== poi.label) void savePoi(poi.id, { label });
+                      }}
+                      className="rounded-sm border border-input bg-card px-2 py-1 text-sm text-foreground"
+                      aria-label="POI label"
+                    />
+                    <select
+                      value={poi.poi_kind ?? "structure"}
+                      onChange={(e) => void savePoi(poi.id, { poi_kind: e.target.value })}
+                      className="rounded-sm border border-input bg-card px-2 py-1 font-mono text-[11px] text-foreground"
+                      aria-label="POI kind"
+                    >
+                      {POI_KINDS.map((kind) => (
+                        <option key={kind} value={kind}>
+                          {POI_KIND_LABELS[kind as PoiKind]}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      defaultValue={poi.altitude_ft ?? ""}
+                      placeholder="height ft"
+                      onBlur={(e) => {
+                        const raw = e.target.value.trim();
+                        const next = raw === "" ? null : Number(raw);
+                        if (next !== (poi.altitude_ft ?? null)) void savePoi(poi.id, { altitude_ft: next });
+                      }}
+                      className="w-24 rounded-sm border border-input bg-card px-2 py-1 font-mono text-[11px] text-foreground"
+                      aria-label="POI height in feet"
+                    />
+                    <span className="self-center font-mono text-[11px] text-muted-foreground">
+                      {usedBy} wp · {poi.latitude.toFixed(5)}, {poi.longitude.toFixed(5)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => void removePoi(poi.id)}
+                      className="self-center font-display text-[10px] uppercase tracking-[0.11em] text-destructive"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                );
+              })}
+              {poiRefs.length === 0 ? (
+                <p className="px-3 py-6 text-sm text-muted-foreground">
+                  No points of interest yet. Use <span className="font-mono">Add POI</span> and click the map to mark a
+                  crane, structure or gate, then lock a waypoint's camera to it.
+                </p>
+              ) : null}
+            </div>
+            <p className="px-3 pb-3 pt-1 text-[11px] leading-relaxed text-muted-foreground">
+              Height is the feature height above launch. When set, POI-locked waypoints derive their gimbal pitch from
+              the geometry so the reference stays framed in photos and video.
+            </p>
           </Panel>
 
           {selected ? (
@@ -653,7 +845,7 @@ function Planner() {
                 <div className="sm:col-span-3 rounded-sm border border-border p-2.5">
                   <SectionLabel>Camera orientation</SectionLabel>
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                    {(["fixed", "aim", "center", "path"] as HeadingMode[]).map((mode) => (
+                    {(["fixed", "aim", "poi", "center", "path"] as HeadingMode[]).map((mode) => (
                       <button
                         key={mode}
                         type="button"
@@ -672,6 +864,9 @@ function Planner() {
                             ),
                           );
                           if (mode === "aim") setAimMode(true);
+                          if (mode === "poi" && poiRefs.length === 0) {
+                            toast.error("Add a POI to this site first");
+                          }
                         }}
                         className={
                           "rounded-sm border px-2 py-0.5 font-display text-[10px] uppercase tracking-[0.11em] " +
@@ -725,11 +920,38 @@ function Planner() {
                     </div>
                   </div>
 
+                  {selected.heading_mode === "poi" ? (
+                    <label className="mt-2.5 block">
+                      <SectionLabel>Point of interest</SectionLabel>
+                      <select
+                        value={selected.poi_id ?? ""}
+                        onChange={(e) =>
+                          setDraft((list) =>
+                            withHeadings(
+                              (list ?? []).map((w) =>
+                                w.key === selected!.key ? { ...w, poi_id: e.target.value || null } : w,
+                              ),
+                            ),
+                          )
+                        }
+                        className="mt-1 w-full rounded-sm border border-input bg-card px-2.5 py-1.5 text-sm text-foreground"
+                      >
+                        <option value="">Select a POI…</option>
+                        {poiRefs.map((poi) => (
+                          <option key={poi.id} value={poi.id}>
+                            {poi.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ) : null}
+
                   <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => {
                         setAddMode(false);
+                        setPoiMode(false);
                         setAimMode(!aimMode);
                       }}
                       className={
@@ -750,6 +972,7 @@ function Planner() {
                               heading: selected!.heading_mode === "fixed" ? selected!.heading : w.heading,
                               aim_lat: selected!.aim_lat ?? null,
                               aim_lng: selected!.aim_lng ?? null,
+                              poi_id: selected!.poi_id ?? null,
                             })),
                           ),
                         )
@@ -760,7 +983,9 @@ function Planner() {
                     </button>
                   </div>
                   <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-                    Drag the round handle on the map to spin the aircraft. A{" "}
+                    Lock the camera to a POI and every capture at this waypoint is framed on that reference — the
+                    heading, and the gimbal pitch when the POI has a height, are recomputed automatically if the
+                    waypoint moves. Drag the round handle on the map to spin the aircraft manually. A{" "}
                     <span className="font-mono">rotate_aircraft</span> action is written before every photo or video
                     action on export, so the aircraft is settled on this heading before capture.
                   </p>

@@ -1041,6 +1041,69 @@ export type Database = {
           },
         ]
       }
+      points_of_interest: {
+        Row: {
+          altitude_ft: number | null
+          created_at: string
+          gimbal_pitch: number | null
+          id: string
+          is_demo: boolean
+          label: string
+          latitude: number
+          longitude: number
+          notes: string | null
+          organization_id: string
+          poi_kind: string
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          altitude_ft?: number | null
+          created_at?: string
+          gimbal_pitch?: number | null
+          id?: string
+          is_demo?: boolean
+          label: string
+          latitude: number
+          longitude: number
+          notes?: string | null
+          organization_id: string
+          poi_kind?: string
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          altitude_ft?: number | null
+          created_at?: string
+          gimbal_pitch?: number | null
+          id?: string
+          is_demo?: boolean
+          label?: string
+          latitude?: number
+          longitude?: number
+          notes?: string | null
+          organization_id?: string
+          poi_kind?: string
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "points_of_interest_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "points_of_interest_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       preflight_checklists: {
         Row: {
           completed: boolean

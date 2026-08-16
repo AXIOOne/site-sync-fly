@@ -29,6 +29,19 @@ export const boundariesQuery = (projectId: string) =>
     queryFn: () => unwrap(supabase.from("project_boundaries").select("*").eq("project_id", projectId)),
   });
 
+export const poisQuery = (projectId: string) =>
+  queryOptions({
+    queryKey: ["pois", projectId],
+    queryFn: () =>
+      unwrap(
+        supabase
+          .from("points_of_interest")
+          .select("*")
+          .eq("project_id", projectId)
+          .order("label"),
+      ),
+  });
+
 export const dronesQuery = () =>
   queryOptions({
     queryKey: ["drones"],
