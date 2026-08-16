@@ -196,8 +196,23 @@ function ReportsPage() {
               {(reports.data ?? []).map((r: any) => (
                 <div key={r.id} className="px-3 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm font-medium text-foreground">{r.title}</p>
-                    <StatusChip label={r.report_type.replace("_", " ")} tone="info" dot={false} />
+                    <Link
+                      to="/report/$reportId"
+                      params={{ reportId: r.id }}
+                      className="text-sm font-medium text-foreground hover:text-primary"
+                    >
+                      {r.title}
+                    </Link>
+                    <div className="flex items-center gap-2">
+                      <StatusChip label={r.report_type.replace("_", " ")} tone="info" dot={false} />
+                      <Link
+                        to="/report/$reportId"
+                        params={{ reportId: r.id }}
+                        className="font-display text-[10px] font-semibold uppercase tracking-[0.11em] text-primary hover:underline"
+                      >
+                        Open / print
+                      </Link>
+                    </div>
                   </div>
                   <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
                     {r.projects?.name} • {formatDateTime(r.created_at)} •{" "}
@@ -205,6 +220,7 @@ function ReportsPage() {
                   </p>
                   {r.notes ? <p className="mt-1.5 text-sm text-muted-foreground">{r.notes}</p> : null}
                 </div>
+
               ))}
             </div>
           )}
