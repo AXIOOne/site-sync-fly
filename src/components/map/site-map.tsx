@@ -14,6 +14,14 @@ export interface MapWaypoint {
   aim?: LatLng | null;
 }
 
+export interface MapPoi {
+  id: string;
+  label: string;
+  latitude: number;
+  longitude: number;
+  kind?: string | null;
+}
+
 export interface SiteMapProps {
   center: LatLng;
   zoom?: number;
@@ -26,6 +34,14 @@ export interface SiteMapProps {
   /** Trail of already-flown positions. */
   trail?: LatLng[];
   markers?: { latitude: number; longitude: number; label: string; tone?: "takeoff" | "landing" | "rth" }[];
+  /** Named site references the camera can be locked to. */
+  pois?: MapPoi[];
+  /** Highlighted POI (e.g. the one the selected waypoint is locked to). */
+  activePoiId?: string | null;
+  /** When true, the next map click drops a new POI instead of a waypoint. */
+  poiMode?: boolean;
+  onPoiPlaced?: (point: LatLng) => void;
+  onPoiClick?: (id: string) => void;
   selectedWaypointKey?: string | null;
   editable?: boolean;
   drawMode?: boolean;
@@ -56,6 +72,11 @@ export function SiteMap({
   aircraft = null,
   trail = [],
   markers = [],
+  pois = [],
+  activePoiId = null,
+  poiMode = false,
+  onPoiPlaced,
+  onPoiClick,
   selectedWaypointKey = null,
   editable = false,
   drawMode = false,
@@ -74,6 +95,7 @@ export function SiteMap({
   const aircraftMarkerRef = useRef<any>(null);
   const aimHandleRef = useRef<any>(null);
   const aimTargetRef = useRef<any>(null);
+  const poiMarkerRefs = useRef<Map<string, any>>(new Map());
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   const { data: tokenInfo, isPending } = useMapboxToken();
@@ -86,6 +108,8 @@ export function SiteMap({
   aimRef.current = { aimMode, selectedWaypointKey, onAimPointPicked };
   const headingChangeRef = useRef(onWaypointHeadingChange);
   headingChangeRef.current = onWaypointHeadingChange;
+  const poiRef = useRef({ poiMode, onPoiPlaced, onPoiClick });
+  poiRef.current = { poiMode, onPoiPlaced, onPoiClick };
 
 
   useEffect(() => {
@@ -167,6 +191,10 @@ padding: 0,
         });
         map.on("click", (event: any) => {
           const point = { latitude: event.lngLat.lat, longitude: event.lngLat.lng };
+          if (poiRef.current.poiMode) {
+            poiRef.current.onPoiPlaced?.(point);
+            return;
+          }
           const aim = aimRef.current;
           if (aim.aimMode && aim.selectedWaypointKey) {
             aim.onAimPointPicked?.(aim.selectedWaypointKey, point);
@@ -195,8 +223,47 @@ padding: 0,
   // Cursor feedback while drawing or aiming
   useEffect(() => {
     if (!ready || !mapRef.current) return;
-    mapRef.current.getCanvas().style.cursor = drawMode || aimMode ? "crosshair" : "";
-  }, [ready, drawMode, aimMode]);
+    mapRef.current.getCanvas().style.cursor = drawMode || aimMode || poiMode ? "crosshair" : "";
+  }, [ready, drawMode, aimMode, poiMode]);
+
+  // POI markers
+  useEffect(() => {
+    const map = mapRef.current;
+    const gl = glRef.current;
+    if (!ready || !map || !gl) return;
+    const seen = new Set<string>();
+    for (const poi of pois) {
+      seen.add(poi.id);
+      let marker = poiMarkerRefs.current.get(poi.id);
+      if (!marker) {
+        const node = document.createElement("button");
+        node.type = "button";
+        node.className = "poi-marker";
+        node.innerHTML = '<span class="poi-dot"></span><span class="poi-label"></span>';
+        node.addEventListener("click", (e) => {
+          e.stopPropagation();
+          poiRef.current.onPoiClick?.(poi.id);
+        });
+        marker = new gl.Marker({ element: node, anchor: "left" })
+          .setLngLat([poi.longitude, poi.latitude])
+          .addTo(map);
+        poiMarkerRefs.current.set(poi.id, marker);
+      } else {
+        marker.setLngLat([poi.longitude, poi.latitude]);
+      }
+      const node = marker.getElement() as HTMLElement;
+      const labelNode = node.querySelector(".poi-label");
+      if (labelNode) labelNode.textContent = poi.label;
+      node.title = poi.kind ? `${poi.label} · ${poi.kind}` : poi.label;
+      node.dataset["active"] = String(activePoiId === poi.id);
+    }
+    for (const [id, marker] of poiMarkerRefs.current.entries()) {
+      if (!seen.has(id)) {
+        marker.remove();
+        poiMarkerRefs.current.delete(id);
+      }
+    }
+  }, [ready, pois, activePoiId]);
 
   // Heading cones + aim links
   useEffect(() => {
