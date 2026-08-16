@@ -5,7 +5,7 @@ import { useSession, useWorkspace } from "@/hooks/useSession";
 import { ROLE_LABELS } from "@/lib/domain";
 import { StatusChip } from "@/components/status-chip";
 import { cn } from "@/lib/utils";
-import siteviewLogo from "@/assets/siteview-logo.png.asset.json";
+import siteviewLogo from "@/assets/siteview-logo-dark.png.asset.json";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard" },

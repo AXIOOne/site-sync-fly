@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import siteviewLogo from "@/assets/siteview-logo.png.asset.json";
+import siteviewLogo from "@/assets/siteview-logo-dark.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
