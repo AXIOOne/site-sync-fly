@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { AppShell, LoadingPanel, Panel, SectionLabel } from "@/components/app-shell";
 import { StatusChip, toneForIntegration } from "@/components/status-chip";
 import { supabase } from "@/integrations/supabase/client";
-import { useWorkspace } from "@/hooks/useSession";
+import { useSession, useWorkspace } from "@/hooks/useSession";
 import { integrationsQuery, projectsQuery } from "@/lib/queries";
 import { getFlightWeather } from "@/lib/weather.functions";
 import { INTEGRATION_STATUS_LABELS, formatDateTime } from "@/lib/domain";
