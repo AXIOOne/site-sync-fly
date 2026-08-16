@@ -44,11 +44,13 @@ export function AppShell({
       <header className="sticky top-0 z-30 border-b border-border bg-panel/95 backdrop-blur">
         <div className="flex h-14 items-center gap-6 px-4">
           <Link to="/dashboard" className="flex items-center gap-2">
-            <img
-              src={siteviewLogo.url}
-              alt="SiteView Missions"
-              className="h-7 w-auto"
-            />
+            <div className="rounded-md bg-white px-2.5 py-1.5 shadow-sm">
+              <img
+                src={siteviewLogo.url}
+                alt="SiteView Missions"
+                className="h-9 w-auto"
+              />
+            </div>
           </Link>
           <nav className="hidden flex-1 items-center gap-1 md:flex">
             {NAV.map((item) => (
