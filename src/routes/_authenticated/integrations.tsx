@@ -318,37 +318,25 @@ function Integrations() {
         </div>
       </Panel>
 
+      <WeatherPanel />
+
       <Panel title="Connected services" className="mt-3" dense>
         {integrations.isPending ? (
           <LoadingPanel />
         ) : (
           <div className="grid gap-3 p-3 md:grid-cols-2 xl:grid-cols-3">
-            {(integrations.data ?? []).map((i) => {
-              const config = (i.config ?? {}) as Record<string, unknown>;
-              return (
-                <div key={i.id} className="rounded-md border border-border bg-panel/50 p-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="font-display text-sm font-semibold uppercase tracking-[0.06em] text-foreground">
-                      {i.provider}
-                    </p>
-                    <StatusChip
-                      label={INTEGRATION_STATUS_LABELS[i.status]}
-                      tone={toneForIntegration(i.status)}
-                      dot={false}
-                    />
-                  </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {typeof config["description"] === "string" ? (config["description"] as string) : "—"}
-                  </p>
-                  <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-                    {i.connected_at ? `connected ${formatDateTime(i.connected_at)}` : "not connected"}
-                  </p>
-                </div>
-              );
-            })}
+            {(integrations.data ?? []).map((i) => (
+              <IntegrationCard
+                key={i.id}
+                integration={i}
+                canEdit={Boolean(workspace?.canEdit)}
+                onSaved={() => queryClient.invalidateQueries({ queryKey: ["integrations"] })}
+              />
+            ))}
           </div>
         )}
       </Panel>
+
     </AppShell>
   );
 }
