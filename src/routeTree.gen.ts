@@ -17,6 +17,7 @@ import { Route as AuthenticatedFleetRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
 import { Route as AuthenticatedPilotsRouteImport } from './routes/_authenticated/pilots'
+import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedFlightsIndexRouteImport } from './routes/_authenticated/flights.index'
@@ -71,6 +72,11 @@ const AuthenticatedMediaRoute = AuthenticatedMediaRouteImport.update({
 const AuthenticatedPilotsRoute = AuthenticatedPilotsRouteImport.update({
   id: '/pilots',
   path: '/pilots',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
@@ -164,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/media': typeof AuthenticatedMediaRoute
   '/pilots': typeof AuthenticatedPilotsRoute
+  '/progress': typeof AuthenticatedProgressRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
@@ -188,6 +195,7 @@ export interface FileRoutesByTo {
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/media': typeof AuthenticatedMediaRoute
   '/pilots': typeof AuthenticatedPilotsRoute
+  '/progress': typeof AuthenticatedProgressRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
   '/_authenticated/pilots': typeof AuthenticatedPilotsRoute
+  '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
@@ -240,6 +249,7 @@ export interface FileRouteTypes {
     | '/integrations'
     | '/media'
     | '/pilots'
+    | '/progress'
     | '/reports'
     | '/settings'
     | '/flights/$flightId'
@@ -264,6 +274,7 @@ export interface FileRouteTypes {
     | '/integrations'
     | '/media'
     | '/pilots'
+    | '/progress'
     | '/reports'
     | '/settings'
     | '/flights/$flightId'
@@ -289,6 +300,7 @@ export interface FileRouteTypes {
     | '/_authenticated/integrations'
     | '/_authenticated/media'
     | '/_authenticated/pilots'
+    | '/_authenticated/progress'
     | '/_authenticated/reports'
     | '/_authenticated/settings'
     | '/_authenticated/flights/$flightId'
@@ -374,6 +386,13 @@ declare module '@tanstack/react-router' {
       path: '/pilots'
       fullPath: '/pilots'
       preLoaderRoute: typeof AuthenticatedPilotsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/progress': {
+      id: '/_authenticated/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof AuthenticatedProgressRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/reports': {
@@ -490,6 +509,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
   AuthenticatedPilotsRoute: typeof AuthenticatedPilotsRoute
+  AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedFlightsFlightIdRoute: typeof AuthenticatedFlightsFlightIdRoute
@@ -507,6 +527,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
   AuthenticatedPilotsRoute: AuthenticatedPilotsRoute,
+  AuthenticatedProgressRoute: AuthenticatedProgressRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedFlightsFlightIdRoute: AuthenticatedFlightsFlightIdRoute,

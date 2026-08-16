@@ -39,7 +39,7 @@ function ProgressTimeline() {
   }, [projectId, projects.data]);
 
   const missions = useQuery({ ...missionsQuery(projectId || undefined), enabled: Boolean(projectId) });
-  const media = useQuery({ ...mediaQuery({ projectId: projectId || undefined }), enabled: Boolean(projectId) });
+  const media = useQuery({ ...mediaQuery(projectId ? { projectId } : {}), enabled: Boolean(projectId) });
 
   const [missionId, setMissionId] = useState("");
   const [viewpoint, setViewpoint] = useState("");
