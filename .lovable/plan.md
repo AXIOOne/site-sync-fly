@@ -1,36 +1,28 @@
-# Virtual 3D Fly-Through Review
+# Fix: aim handle keeps rotating the first waypoint you dragged
 
-A cinematic first-person preview of a planned mission, so a planner can see exactly what the drone will see at each waypoint before the mission is published or dispatched.
+## What's happening
 
-## What the user gets
+Confirmed in `src/components/map/site-map.tsx` (lines 300-352). The drag handler for the round aim handle is created **once**, at the moment the handle marker is first added to the map, and it closes over the waypoint list and selected key from that render. Selecting a different waypoint moves the handle to the new waypoint, but the handler still resolves the *original* waypoint, so every drag writes the heading back to that first waypoint.
 
-A new **Fly-through** screen reached from the mission planner (button next to Simulate) at `/flythrough/{missionId}`:
+```text
+select WP 01  ->  handle created, handler captures key = WP 01
+select WP 03  ->  handle repositioned over WP 03
+drag handle   ->  handler still emits heading for WP 01   <-- bug
+```
 
-- **Pilot view**: 3D satellite terrain with the camera placed at the aircraft's planned position, altitude, heading and gimbal pitch — the frame you'd get from the drone.
-- **Playback bar**: play/pause, restart, scrub timeline, speed 0.5x / 1x / 2x / 4x, and jump-to-waypoint chips.
-- **Camera modes**:
-  - Pilot (from the aircraft, using each waypoint's heading and gimbal pitch)
-  - Chase (behind and above the aircraft, route visible ahead)
-  - Orbit (a slow rotation around the selected waypoint's framing)
-- **Shot preview at each waypoint**: when the aircraft arrives at a capture waypoint, playback holds for the planned hover time, a shutter-style overlay fires, and the HUD names what the camera is aimed at (fixed bearing, aim target, or locked POI).
-- **HUD**: waypoint index, altitude AGL, heading with compass letters, gimbal pitch, ground speed, elapsed / total time, distance flown, and a live battery estimate — same figures as the mission's estimates, so the fly-through doubles as a plausibility check.
-- **Route in 3D**: the planned path drawn at its real altitude as an extruded ribbon, waypoint pillars from ground up to flight altitude, POI markers as vertical beacons, and the site boundary on the ground.
-- **Issue callouts**: while playing, the screen flags anything the readiness checks already know about at that waypoint (missing heading, capture without a camera action, altitude above the ceiling), so problems are caught visually.
+## The fix
 
-Nothing is written to the database — this is a review tool, not a flight. It is labelled clearly as a planning preview built from planned values, not aircraft data.
+Follow the pattern already used elsewhere in the same file (`aimRef`, `poiRef`, `headingChangeRef`): store the current selection in a ref that is refreshed on every render, and have the drag handler read from that ref instead of from its closure.
 
-## Also added
+- Add a ref holding the currently selected waypoint's key and its origin latitude/longitude, updated each render.
+- Rewrite the handle's `drag` / `dragend` handler to compute the bearing from that ref's origin to the handle position, and emit against the ref's key.
+- Keep the handler attached once (no listener churn), so dragging stays smooth.
 
-- A small **Preview in 3D** button on each waypoint row in the planner that opens the fly-through paused at that waypoint's shot.
+## Also corrected in the same pass
 
-## Technical approach
+- While the handle is being dragged, skip the effect's `setLngLat` reposition so the handle doesn't fight the pointer if a heading round-trip lands mid-drag.
+- Clear the aim handle when selection changes to a waypoint whose heading mode is derived (Face center / Follow path / Lock to POI) is already handled upstream; no change needed there.
 
-- Reuse `FlightSimulator` (already deterministic over `DraftWaypoint[]`) as the position/time source, driven by a `requestAnimationFrame` loop with a speed multiplier, so the fly-through and the existing simulation stay consistent.
-- New `src/components/map/flythrough-map.tsx`, mounted client-only like `site-map.tsx` (dynamic `mapbox-gl` import, token from `useMapboxToken`):
-  - `mapbox-dem` raster-dem source + `setTerrain`, plus `sky` layer for horizon.
-  - Camera driven by `map.getFreeCameraOptions()` / `setFreeCameraOptions` with `lookAtPoint` derived from waypoint heading and gimbal pitch; chase and orbit modes use the same helper with an offset.
-  - Layers: `line` for route at altitude, `fill-extrusion` for waypoint pillars and POI beacons, existing boundary styling.
-- New route `src/routes/_authenticated/flythrough.$missionId.tsx` with `ssr: false`, its own `head()` metadata, mirroring how `simulate.$missionId.tsx` hydrates the mission version, waypoints, POIs and settings, and applying `resolveWaypointHeadings` so POI-locked headings and derived pitches are used.
-- Waypoint-to-camera math (interpolated heading between legs, pitch clamping, altitude in meters) goes in a testable `src/lib/services/flythrough-camera.ts` — no new geometry logic inside the component.
-- Readiness callouts reuse the existing evaluation output from `mission-planning.ts`; no new rules.
-- No schema changes, no new server functions.
+## Verification
+
+Drive the planner in a browser: select waypoint 01, drag the handle, confirm 01's bearing changes; then select waypoint 03, drag, and confirm 03 changes while 01 keeps its value. Repeat once more with a third waypoint to prove the handler is no longer sticky.
