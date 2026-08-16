@@ -91,7 +91,9 @@ function AuthPage() {
           className="absolute inset-0 size-full object-cover opacity-30"
         />
         <div className="relative">
-          <img src={siteviewLogo.url} alt="SiteView Missions" className="h-8 w-auto" />
+          <div className="inline-block rounded-md bg-white px-3 py-2 shadow-sm">
+            <img src={siteviewLogo.url} alt="SiteView Missions" className="h-10 w-auto" />
+          </div>
           <h1 className="mt-6 max-w-lg font-display text-4xl font-bold uppercase leading-[1.05] tracking-[0.02em] text-foreground">
             Repeatable drone missions for construction progress
           </h1>
