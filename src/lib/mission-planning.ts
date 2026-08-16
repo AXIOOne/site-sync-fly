@@ -2,6 +2,7 @@ import {
   FT_TO_M,
   MPH_TO_MS,
   bearing,
+  haversineMeters,
   bounds,
   centroid,
   metersToDegLat,
@@ -45,6 +46,8 @@ export interface PoiRef {
   label: string;
   latitude: number;
   longitude: number;
+  /** Feature height above launch, in feet, used to frame the gimbal. */
+  altitude_ft?: number | null;
   /** Optional gimbal pitch that frames this reference well. */
   gimbal_pitch?: number | null;
   poi_kind?: string | null;
