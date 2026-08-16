@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { AppShell, LoadingPanel, Metric, Panel } from "@/components/app-shell";
 import { StatusChip, toneForDevice, toneForDroneStatus } from "@/components/status-chip";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession, useWorkspace } from "@/hooks/useSession";
 import { devicesQuery, dronesQuery, pilotsQuery } from "@/lib/queries";
 import { DEVICE_STATUS_LABELS, DRONE_STATUS_LABELS, formatDate, formatDateTime } from "@/lib/domain";
 
