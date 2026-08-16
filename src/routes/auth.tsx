@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import siteviewLogo from "@/assets/siteview-logo.png.asset.json";
+import siteviewLogo from "@/assets/siteview-logo-dark.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -91,9 +91,7 @@ function AuthPage() {
           className="absolute inset-0 size-full object-cover opacity-30"
         />
         <div className="relative">
-          <div className="inline-block rounded-md bg-white px-3 py-2 shadow-sm">
-            <img src={siteviewLogo.url} alt="SiteView Missions" className="h-10 w-auto" />
-          </div>
+          <img src={siteviewLogo.url} alt="SiteView Missions" className="h-11 w-auto" />
           <h1 className="mt-6 max-w-lg font-display text-4xl font-bold uppercase leading-[1.05] tracking-[0.02em] text-foreground">
             Repeatable drone missions for construction progress
           </h1>
