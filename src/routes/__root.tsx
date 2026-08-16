@@ -78,21 +78,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Aerial Site Ops — Construction Drone Missions" },
-      { name: "description", content: "Plan repeatable construction drone missions, record flights and compare site progress." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Aerial Site Ops — Construction Drone Missions" },
+      { title: "SiteView Missions — Construction Drone Mission Control" },
+      { name: "description", content: "Plan repeatable construction drone missions, record flights and compare site progress with SiteView Missions." },
+      { name: "author", content: "SiteView Missions" },
+      { property: "og:title", content: "SiteView Missions — Construction Drone Mission Control" },
       { property: "og:description", content: "Repeatable drone mission planning, flight records and progress comparison for construction sites." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@SiteViewMissions" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "stylesheet",

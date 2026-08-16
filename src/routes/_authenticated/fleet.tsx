@@ -12,13 +12,13 @@ import { DEVICE_STATUS_LABELS, DRONE_STATUS_LABELS, formatDate, formatDateTime }
 export const Route = createFileRoute("/_authenticated/fleet")({
   head: () => ({
     meta: [
-      { title: "Fleet & Pilots — Aerial Site Ops" },
+      { title: "Fleet & Pilots — SiteView Missions" },
       {
         name: "description",
         content:
           "Aircraft readiness, flight hours, RTK capability, pilot certifications and registered Flight Agent devices.",
       },
-      { property: "og:title", content: "Fleet & Pilots — Aerial Site Ops" },
+      { property: "og:title", content: "Fleet & Pilots — SiteView Missions" },
       {
         property: "og:description",
         content: "Aircraft readiness, pilot certifications and registered Flight Agent devices.",

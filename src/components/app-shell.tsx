@@ -5,6 +5,7 @@ import { useSession, useWorkspace } from "@/hooks/useSession";
 import { ROLE_LABELS } from "@/lib/domain";
 import { StatusChip } from "@/components/status-chip";
 import { cn } from "@/lib/utils";
+import siteviewLogo from "@/assets/siteview-logo.png.asset.json";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard" },
@@ -43,12 +44,11 @@ export function AppShell({
       <header className="sticky top-0 z-30 border-b border-border bg-panel/95 backdrop-blur">
         <div className="flex h-14 items-center gap-6 px-4">
           <Link to="/dashboard" className="flex items-center gap-2">
-            <span className="grid size-7 place-items-center rounded-sm bg-primary font-display text-sm font-bold text-primary-foreground">
-              A
-            </span>
-            <span className="font-display text-sm font-bold uppercase tracking-[0.18em] text-foreground">
-              Aerial Site Ops
-            </span>
+            <img
+              src={siteviewLogo.url}
+              alt="SiteView Missions"
+              className="h-7 w-auto"
+            />
           </Link>
           <nav className="hidden flex-1 items-center gap-1 md:flex">
             {NAV.map((item) => (

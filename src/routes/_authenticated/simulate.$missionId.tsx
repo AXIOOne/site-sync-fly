@@ -22,13 +22,13 @@ import { useSession, useWorkspace } from "@/hooks/useSession";
 export const Route = createFileRoute("/_authenticated/simulate/$missionId")({
   head: () => ({
     meta: [
-      { title: "Mission Control — Aerial Site Ops" },
+      { title: "Mission Control — SiteView Missions" },
       {
         name: "description",
         content:
           "Run a preflight checklist and execute a simulated mission with live-style telemetry, event stream and captured waypoint imagery.",
       },
-      { property: "og:title", content: "Mission Control — Aerial Site Ops" },
+      { property: "og:title", content: "Mission Control — SiteView Missions" },
       {
         property: "og:description",
         content: "Preflight checklist plus a simulated mission run with telemetry and event streaming.",

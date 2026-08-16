@@ -15,13 +15,13 @@ import { INTEGRATION_STATUS_LABELS, formatDateTime } from "@/lib/domain";
 export const Route = createFileRoute("/_authenticated/integrations")({
   head: () => ({
     meta: [
-      { title: "Integrations & Flight Agent — Aerial Site Ops" },
+      { title: "Integrations & Flight Agent — SiteView Missions" },
       {
         name: "description",
         content:
           "DJI Flight Agent architecture, mission package format and the integration surface for Procore, weather, airspace and photogrammetry tools.",
       },
-      { property: "og:title", content: "Integrations & Flight Agent — Aerial Site Ops" },
+      { property: "og:title", content: "Integrations & Flight Agent — SiteView Missions" },
       {
         property: "og:description",
         content: "How the future DJI Flight Agent connects, plus the platform's integration surface.",

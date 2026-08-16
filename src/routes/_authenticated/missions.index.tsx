@@ -19,13 +19,13 @@ import {
 export const Route = createFileRoute("/_authenticated/missions/")({
   head: () => ({
     meta: [
-      { title: "Mission Library — Aerial Site Ops" },
+      { title: "Mission Library — SiteView Missions" },
       {
         name: "description",
         content:
           "Every repeatable drone mission across all construction sites, with version numbers, readiness state and recurring schedules.",
       },
-      { property: "og:title", content: "Mission Library — Aerial Site Ops" },
+      { property: "og:title", content: "Mission Library — SiteView Missions" },
       {
         property: "og:description",
         content: "Repeatable mission templates across all sites with versions, readiness and schedules.",

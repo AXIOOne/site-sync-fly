@@ -48,13 +48,13 @@ import { useSession, useWorkspace } from "@/hooks/useSession";
 export const Route = createFileRoute("/_authenticated/missions/$missionId")({
   head: () => ({
     meta: [
-      { title: "Flight Planner — Aerial Site Ops" },
+      { title: "Flight Planner — SiteView Missions" },
       {
         name: "description",
         content:
           "Plan waypoints on satellite imagery, set camera and safety parameters, check mission readiness and publish an immutable mission version.",
       },
-      { property: "og:title", content: "Flight Planner — Aerial Site Ops" },
+      { property: "og:title", content: "Flight Planner — SiteView Missions" },
       {
         property: "og:description",
         content: "Waypoint planning, camera actions, readiness checks and versioned mission packages.",

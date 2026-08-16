@@ -12,13 +12,13 @@ import { formatDate } from "@/lib/domain";
 export const Route = createFileRoute("/_authenticated/pilots")({
   head: () => ({
     meta: [
-      { title: "Pilots & Part 107 — Aerial Site Ops" },
+      { title: "Pilots & Part 107 — SiteView Missions" },
       {
         name: "description",
         content:
           "Manage remote pilot profiles, FAA Part 107 certificate numbers and expirations, aircraft assignments and logged flight history.",
       },
-      { property: "og:title", content: "Pilots & Part 107 — Aerial Site Ops" },
+      { property: "og:title", content: "Pilots & Part 107 — SiteView Missions" },
       {
         property: "og:description",
         content: "Remote pilot profiles, Part 107 certificate tracking and logged flight history.",
