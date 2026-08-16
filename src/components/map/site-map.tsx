@@ -110,6 +110,13 @@ export function SiteMap({
   headingChangeRef.current = onWaypointHeadingChange;
   const poiRef = useRef({ poiMode, onPoiPlaced, onPoiClick });
   poiRef.current = { poiMode, onPoiPlaced, onPoiClick };
+  /** Live origin of the aim handle so the drag handler is never stale. */
+  const aimOriginRef = useRef<{ key: string; latitude: number; longitude: number } | null>(null);
+  const selectedForAim = waypoints.find((w) => w.key === selectedWaypointKey) ?? null;
+  aimOriginRef.current = selectedForAim
+    ? { key: selectedForAim.key, latitude: selectedForAim.latitude, longitude: selectedForAim.longitude }
+    : null;
+  const aimDraggingRef = useRef(false);
 
 
   useEffect(() => {
@@ -320,7 +327,9 @@ padding: 0,
         .setLngLat([tip.longitude, tip.latitude])
         .addTo(map);
       const emit = () => {
-        const origin = waypoints.find((w) => w.key === selectedWaypointKey);
+        // Always read the *current* selection, never the one captured when the
+        // handle was first created — otherwise every drag re-aims that waypoint.
+        const origin = aimOriginRef.current;
         if (!origin) return;
         const pos = aimHandleRef.current.getLngLat();
         const deg = bearing(
@@ -329,9 +338,15 @@ padding: 0,
         );
         headingChangeRef.current?.(origin.key, Math.round(deg));
       };
+      aimHandleRef.current.on("dragstart", () => {
+        aimDraggingRef.current = true;
+      });
       aimHandleRef.current.on("drag", emit);
-      aimHandleRef.current.on("dragend", emit);
-    } else {
+      aimHandleRef.current.on("dragend", () => {
+        emit();
+        aimDraggingRef.current = false;
+      });
+    } else if (!aimDraggingRef.current) {
       aimHandleRef.current.setLngLat([tip.longitude, tip.latitude]);
     }
 
