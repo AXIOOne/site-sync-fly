@@ -166,6 +166,10 @@ function build(
       settings.pointToCenter && center
         ? Math.round(bearing(p, center))
         : Math.round(bearing(p, points[Math.min(i + 1, points.length - 1)] ?? p)),
+    heading_mode: settings.pointToCenter && center ? ("center" as const) : ("path" as const),
+    aim_lat: null,
+    aim_lng: null,
+
     gimbal_pitch: settings.gimbal_pitch,
     speed_mph: settings.speed_mph,
     label: `${labelPrefix} ${String(i + 1).padStart(2, "0")}`,
