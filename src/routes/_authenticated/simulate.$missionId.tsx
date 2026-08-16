@@ -8,7 +8,7 @@ import { SiteMap } from "@/components/map/site-map";
 import { dronesQuery, missionQuery, missionVersionsQuery, pilotsQuery, projectQuery, waypointsQuery } from "@/lib/queries";
 import { PREFLIGHT_ITEMS, formatDistanceMeters, formatDuration } from "@/lib/domain";
 import type { LatLng } from "@/lib/geo";
-import type { DraftWaypoint } from "@/lib/mission-planning";
+import type { DraftWaypoint, HeadingMode } from "@/lib/mission-planning";
 import { FlightSimulator, type SimulatorState } from "@/lib/services/flight-simulator";
 import {
   FlightExecutionService,
