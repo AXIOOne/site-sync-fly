@@ -192,11 +192,98 @@ padding: 0,
     };
   }, []);
 
-  // Cursor feedback while drawing
+  // Cursor feedback while drawing or aiming
   useEffect(() => {
     if (!ready || !mapRef.current) return;
-    mapRef.current.getCanvas().style.cursor = drawMode ? "crosshair" : "";
-  }, [ready, drawMode]);
+    mapRef.current.getCanvas().style.cursor = drawMode || aimMode ? "crosshair" : "";
+  }, [ready, drawMode, aimMode]);
+
+  // Heading cones + aim links
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map) return;
+    const cones = waypoints
+      .filter((w) => w.heading != null)
+      .map((w) => ({
+        type: "Feature" as const,
+        properties: { selected: selectedWaypointKey === w.key, sequence: w.sequence },
+        geometry: {
+          type: "Polygon" as const,
+          coordinates: [coneRing(w, Number(w.heading))],
+        },
+      }));
+    map.getSource("waypoint-headings")?.setData({ type: "FeatureCollection", features: cones });
+
+    const links = waypoints
+      .filter((w) => w.aim)
+      .map((w) => ({
+        type: "Feature" as const,
+        properties: {},
+        geometry: {
+          type: "LineString" as const,
+          coordinates: [
+            [w.longitude, w.latitude],
+            [w.aim!.longitude, w.aim!.latitude],
+          ],
+        },
+      }));
+    map.getSource("aim-links")?.setData({ type: "FeatureCollection", features: links });
+  }, [ready, waypoints, selectedWaypointKey]);
+
+  // Draggable aim handle for the selected waypoint
+  useEffect(() => {
+    const map = mapRef.current;
+    const gl = glRef.current;
+    if (!ready || !map || !gl) return;
+    const selected = waypoints.find((w) => w.key === selectedWaypointKey) ?? null;
+    if (!selected || !editable) {
+      aimHandleRef.current?.remove();
+      aimHandleRef.current = null;
+      aimTargetRef.current?.remove();
+      aimTargetRef.current = null;
+      return;
+    }
+    const heading = selected.heading ?? 0;
+    const tip = offsetPoint(selected, heading, CONE_METERS * 1.05);
+    if (!aimHandleRef.current) {
+      const node = document.createElement("div");
+      node.className = "aim-handle";
+      node.title = "Drag to aim the aircraft";
+      aimHandleRef.current = new gl.Marker({ element: node, draggable: true })
+        .setLngLat([tip.longitude, tip.latitude])
+        .addTo(map);
+      const emit = () => {
+        const origin = waypoints.find((w) => w.key === selectedWaypointKey);
+        if (!origin) return;
+        const pos = aimHandleRef.current.getLngLat();
+        const deg = bearing(
+          { latitude: origin.latitude, longitude: origin.longitude },
+          { latitude: pos.lat, longitude: pos.lng },
+        );
+        headingChangeRef.current?.(origin.key, Math.round(deg));
+      };
+      aimHandleRef.current.on("drag", emit);
+      aimHandleRef.current.on("dragend", emit);
+    } else {
+      aimHandleRef.current.setLngLat([tip.longitude, tip.latitude]);
+    }
+
+    if (selected.aim) {
+      if (!aimTargetRef.current) {
+        const node = document.createElement("div");
+        node.className = "aim-target";
+        aimTargetRef.current = new gl.Marker({ element: node })
+          .setLngLat([selected.aim.longitude, selected.aim.latitude])
+          .addTo(map);
+      } else {
+        aimTargetRef.current.setLngLat([selected.aim.longitude, selected.aim.latitude]);
+      }
+    } else {
+      aimTargetRef.current?.remove();
+      aimTargetRef.current = null;
+    }
+  }, [ready, waypoints, selectedWaypointKey, editable]);
+
 
   // Path + waypoint markers
   useEffect(() => {
