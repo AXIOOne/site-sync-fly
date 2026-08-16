@@ -370,7 +370,7 @@ function Planner() {
           <button
             type="button"
             onClick={() =>
-              navigate({ to: "/missions/$missionId/simulate", params: { missionId } })
+              navigate({ to: "/simulate/$missionId", params: { missionId } })
             }
             className="rounded-sm border border-border px-2.5 py-1.5 font-display text-[11px] font-semibold uppercase tracking-[0.11em] text-foreground hover:bg-secondary"
           >

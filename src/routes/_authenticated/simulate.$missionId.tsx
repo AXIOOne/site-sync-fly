@@ -380,7 +380,7 @@ function MissionControl() {
             <Metric
               label="Progress"
               value={state ? `${Math.round(state.missionProgress)}%` : "0%"}
-              hint={state ? `WP ${state.currentWaypoint}/${waypoints.length} · ${state.flightMode}` : undefined}
+              hint={state ? `WP ${state.currentWaypoint}/${waypoints.length} · ${state.flightMode}` : ""}
             />
           </div>
         </Panel>

@@ -22,6 +22,7 @@ import { Route as AuthenticatedFlightsFlightIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions.$missionId'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
 import { Route as AuthenticatedProjectsProjectIdRouteImport } from './routes/_authenticated/projects.$projectId'
+import { Route as AuthenticatedSimulateMissionIdRouteImport } from './routes/_authenticated/simulate.$missionId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -93,6 +94,12 @@ const AuthenticatedProjectsProjectIdRoute =
     path: '/projects/$projectId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSimulateMissionIdRoute =
+  AuthenticatedSimulateMissionIdRouteImport.update({
+    id: '/simulate/$missionId',
+    path: '/simulate/$missionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -105,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/simulate/$missionId': typeof AuthenticatedSimulateMissionIdRoute
   '/flights/': typeof AuthenticatedFlightsIndexRoute
   '/projects/': typeof AuthenticatedProjectsIndexRoute
 }
@@ -119,6 +127,7 @@ export interface FileRoutesByTo {
   '/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/simulate/$missionId': typeof AuthenticatedSimulateMissionIdRoute
   '/flights': typeof AuthenticatedFlightsIndexRoute
   '/projects': typeof AuthenticatedProjectsIndexRoute
 }
@@ -135,6 +144,7 @@ export interface FileRoutesById {
   '/_authenticated/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/_authenticated/simulate/$missionId': typeof AuthenticatedSimulateMissionIdRoute
   '/_authenticated/flights/': typeof AuthenticatedFlightsIndexRoute
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
 }
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/flights/$flightId'
     | '/missions/$missionId'
     | '/projects/$projectId'
+    | '/simulate/$missionId'
     | '/flights/'
     | '/projects/'
   fileRoutesByTo: FileRoutesByTo
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/flights/$flightId'
     | '/missions/$missionId'
     | '/projects/$projectId'
+    | '/simulate/$missionId'
     | '/flights'
     | '/projects'
   id:
@@ -180,6 +192,7 @@ export interface FileRouteTypes {
     | '/_authenticated/flights/$flightId'
     | '/_authenticated/missions/$missionId'
     | '/_authenticated/projects/$projectId'
+    | '/_authenticated/simulate/$missionId'
     | '/_authenticated/flights/'
     | '/_authenticated/projects/'
   fileRoutesById: FileRoutesById
@@ -283,6 +296,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/simulate/$missionId': {
+      id: '/_authenticated/simulate/$missionId'
+      path: '/simulate/$missionId'
+      fullPath: '/simulate/$missionId'
+      preLoaderRoute: typeof AuthenticatedSimulateMissionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -295,6 +315,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFlightsFlightIdRoute: typeof AuthenticatedFlightsFlightIdRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRoute
   AuthenticatedProjectsProjectIdRoute: typeof AuthenticatedProjectsProjectIdRoute
+  AuthenticatedSimulateMissionIdRoute: typeof AuthenticatedSimulateMissionIdRoute
   AuthenticatedFlightsIndexRoute: typeof AuthenticatedFlightsIndexRoute
   AuthenticatedProjectsIndexRoute: typeof AuthenticatedProjectsIndexRoute
 }
@@ -308,6 +329,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFlightsFlightIdRoute: AuthenticatedFlightsFlightIdRoute,
   AuthenticatedMissionsMissionIdRoute: AuthenticatedMissionsMissionIdRoute,
   AuthenticatedProjectsProjectIdRoute: AuthenticatedProjectsProjectIdRoute,
+  AuthenticatedSimulateMissionIdRoute: AuthenticatedSimulateMissionIdRoute,
   AuthenticatedFlightsIndexRoute: AuthenticatedFlightsIndexRoute,
   AuthenticatedProjectsIndexRoute: AuthenticatedProjectsIndexRoute,
 }
