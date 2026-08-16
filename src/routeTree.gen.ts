@@ -26,6 +26,7 @@ import { Route as AuthenticatedMissionsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions.$missionId'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
 import { Route as AuthenticatedProjectsProjectIdRouteImport } from './routes/_authenticated/projects.$projectId'
+import { Route as AuthenticatedReportReportIdRouteImport } from './routes/_authenticated/report.$reportId'
 import { Route as AuthenticatedSimulateMissionIdRouteImport } from './routes/_authenticated/simulate.$missionId'
 import { Route as ApiPublicAgentEventsRouteImport } from './routes/api/public/agent/events'
 import { Route as ApiPublicAgentFlightsRouteImport } from './routes/api/public/agent/flights'
@@ -125,6 +126,12 @@ const AuthenticatedProjectsProjectIdRoute =
     path: '/projects/$projectId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedReportReportIdRoute =
+  AuthenticatedReportReportIdRouteImport.update({
+    id: '/report/$reportId',
+    path: '/report/$reportId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSimulateMissionIdRoute =
   AuthenticatedSimulateMissionIdRouteImport.update({
     id: '/simulate/$missionId',
@@ -176,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/report/$reportId': typeof AuthenticatedReportReportIdRoute
   '/simulate/$missionId': typeof AuthenticatedSimulateMissionIdRoute
   '/flights/': typeof AuthenticatedFlightsIndexRoute
   '/missions/': typeof AuthenticatedMissionsIndexRoute
@@ -201,6 +209,7 @@ export interface FileRoutesByTo {
   '/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/report/$reportId': typeof AuthenticatedReportReportIdRoute
   '/simulate/$missionId': typeof AuthenticatedSimulateMissionIdRoute
   '/flights': typeof AuthenticatedFlightsIndexRoute
   '/missions': typeof AuthenticatedMissionsIndexRoute
@@ -228,6 +237,7 @@ export interface FileRoutesById {
   '/_authenticated/flights/$flightId': typeof AuthenticatedFlightsFlightIdRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/_authenticated/report/$reportId': typeof AuthenticatedReportReportIdRoute
   '/_authenticated/simulate/$missionId': typeof AuthenticatedSimulateMissionIdRoute
   '/_authenticated/flights/': typeof AuthenticatedFlightsIndexRoute
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
@@ -255,6 +265,7 @@ export interface FileRouteTypes {
     | '/flights/$flightId'
     | '/missions/$missionId'
     | '/projects/$projectId'
+    | '/report/$reportId'
     | '/simulate/$missionId'
     | '/flights/'
     | '/missions/'
@@ -280,6 +291,7 @@ export interface FileRouteTypes {
     | '/flights/$flightId'
     | '/missions/$missionId'
     | '/projects/$projectId'
+    | '/report/$reportId'
     | '/simulate/$missionId'
     | '/flights'
     | '/missions'
@@ -306,6 +318,7 @@ export interface FileRouteTypes {
     | '/_authenticated/flights/$flightId'
     | '/_authenticated/missions/$missionId'
     | '/_authenticated/projects/$projectId'
+    | '/_authenticated/report/$reportId'
     | '/_authenticated/simulate/$missionId'
     | '/_authenticated/flights/'
     | '/_authenticated/missions/'
@@ -451,6 +464,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/report/$reportId': {
+      id: '/_authenticated/report/$reportId'
+      path: '/report/$reportId'
+      fullPath: '/report/$reportId'
+      preLoaderRoute: typeof AuthenticatedReportReportIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/simulate/$missionId': {
       id: '/_authenticated/simulate/$missionId'
       path: '/simulate/$missionId'
@@ -515,6 +535,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFlightsFlightIdRoute: typeof AuthenticatedFlightsFlightIdRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRoute
   AuthenticatedProjectsProjectIdRoute: typeof AuthenticatedProjectsProjectIdRoute
+  AuthenticatedReportReportIdRoute: typeof AuthenticatedReportReportIdRoute
   AuthenticatedSimulateMissionIdRoute: typeof AuthenticatedSimulateMissionIdRoute
   AuthenticatedFlightsIndexRoute: typeof AuthenticatedFlightsIndexRoute
   AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
@@ -533,6 +554,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFlightsFlightIdRoute: AuthenticatedFlightsFlightIdRoute,
   AuthenticatedMissionsMissionIdRoute: AuthenticatedMissionsMissionIdRoute,
   AuthenticatedProjectsProjectIdRoute: AuthenticatedProjectsProjectIdRoute,
+  AuthenticatedReportReportIdRoute: AuthenticatedReportReportIdRoute,
   AuthenticatedSimulateMissionIdRoute: AuthenticatedSimulateMissionIdRoute,
   AuthenticatedFlightsIndexRoute: AuthenticatedFlightsIndexRoute,
   AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
