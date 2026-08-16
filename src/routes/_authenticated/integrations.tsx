@@ -187,7 +187,7 @@ function IntegrationCard({
       const { error } = await supabase
         .from("integrations")
         .update({
-          config: { ...config, ...values },
+          config: { ...config, ...values } as never,
           status: connect ? "connected" : "not_connected",
           connected_at: connect ? new Date().toISOString() : null,
         })
