@@ -224,7 +224,7 @@ padding: 0,
               {
                 type: "Feature",
                 properties: {},
-                geometry: { type: "LineString", coordinates: trail.map((p) => [p.lng, p.lat]) },
+                geometry: { type: "LineString", coordinates: trail.map((p) => [p.longitude, p.latitude]) },
               },
             ]
           : [],
