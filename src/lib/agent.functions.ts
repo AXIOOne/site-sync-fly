@@ -77,14 +77,13 @@ export const setDeviceStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => statusSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = { status: data.status };
-    if (data.status === "revoked") {
-      patch["token_hash"] = null;
-      patch["token_preview"] = null;
-    }
+    const revoked = data.status === "revoked";
     const { error } = await context.supabase
       .from("flight_agent_devices")
-      .update(patch)
+      .update({
+        status: data.status,
+        ...(revoked ? { token_hash: null, token_preview: null } : {}),
+      })
       .eq("id", data.deviceId);
     if (error) throw new Error(error.message);
     return { ok: true };
