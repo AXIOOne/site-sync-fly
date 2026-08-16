@@ -26,7 +26,7 @@ import {
   formatDuration,
   type WaypointActionType,
 } from "@/lib/domain";
-import { ringFromGeoJson, SQM_TO_ACRES } from "@/lib/geo";
+import { centroid, ringFromGeoJson, SQM_TO_ACRES } from "@/lib/geo";
 import {
   DEFAULT_GENERATION,
   HEADING_MODE_LABELS,
@@ -181,6 +181,7 @@ function Planner() {
     [boundaries.data],
   );
   const siteRing = rings.find((r) => r.kind === "site")?.ring ?? rings[0]?.ring ?? null;
+  const siteCenter = useMemo(() => (siteRing ? centroid(siteRing) : null), [siteRing]);
 
   const waypoints = draft ?? [];
   const selectedDrone = (drones.data ?? []).find((d) => d.id === settings?.drone_id);
@@ -226,7 +227,12 @@ function Planner() {
   const schedule = (schedules.data ?? []).find((s: any) => s.mission_id === missionId) as any;
 
   function resequence(list: DraftWaypoint[]): DraftWaypoint[] {
-    return list.map((w, i) => ({ ...w, sequence: i + 1 }));
+    return withHeadings(list.map((w, i) => ({ ...w, sequence: i + 1 })));
+  }
+
+  /** Recompute headings for waypoints whose mode derives them from geometry. */
+  function withHeadings(list: DraftWaypoint[]): DraftWaypoint[] {
+    return resolveWaypointHeadings(list, siteCenter);
   }
 
   function regenerate() {
@@ -623,11 +629,121 @@ function Planner() {
                   value={selected.speed_mph ?? settings.speed_mph}
                   onChange={(v) => patchWaypoint(setDraft, selected.key, { speed_mph: v })}
                 />
-                <NumberField
-                  label="Heading (°)"
-                  value={selected.heading ?? 0}
-                  onChange={(v) => patchWaypoint(setDraft, selected.key, { heading: v })}
-                />
+                <div className="sm:col-span-3 rounded-sm border border-border p-2.5">
+                  <SectionLabel>Camera orientation</SectionLabel>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    {(["fixed", "aim", "center", "path"] as HeadingMode[]).map((mode) => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => {
+                          setDraft((list) =>
+                            withHeadings(
+                              (list ?? []).map((w) =>
+                                w.key === selected!.key
+                                  ? {
+                                      ...w,
+                                      heading_mode: mode,
+                                      heading: mode === "fixed" ? (w.heading ?? 0) : w.heading,
+                                    }
+                                  : w,
+                              ),
+                            ),
+                          );
+                          if (mode === "aim") setAimMode(true);
+                        }}
+                        className={
+                          "rounded-sm border px-2 py-0.5 font-display text-[10px] uppercase tracking-[0.11em] " +
+                          (selected!.heading_mode === mode
+                            ? "border-primary bg-primary/15 text-primary"
+                            : "border-border text-muted-foreground hover:text-foreground")
+                        }
+                      >
+                        {HEADING_MODE_LABELS[mode]}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="mt-2.5 grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                    <label className="block">
+                      <SectionLabel>Heading — {formatHeading(selected.heading)}</SectionLabel>
+                      <input
+                        type="range"
+                        min={0}
+                        max={359}
+                        value={Math.round(selected.heading ?? 0)}
+                        onChange={(e) =>
+                          patchWaypoint(setDraft, selected!.key, {
+                            heading: Number(e.target.value),
+                            heading_mode: "fixed",
+                            aim_lat: null,
+                            aim_lng: null,
+                          })
+                        }
+                        className="mt-1 w-full accent-primary"
+                      />
+                    </label>
+                    <div className="flex flex-wrap gap-1">
+                      {COMPASS_PRESETS.map((preset) => (
+                        <button
+                          key={preset.label}
+                          type="button"
+                          onClick={() =>
+                            patchWaypoint(setDraft, selected!.key, {
+                              heading: preset.degrees,
+                              heading_mode: "fixed",
+                              aim_lat: null,
+                              aim_lng: null,
+                            })
+                          }
+                          className="rounded-sm border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground hover:text-foreground"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAddMode(false);
+                        setAimMode(!aimMode);
+                      }}
+                      className={
+                        "rounded-sm border px-2 py-0.5 font-display text-[10px] uppercase tracking-[0.11em] " +
+                        (aimMode ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground")
+                      }
+                    >
+                      {aimMode ? "Click map to pick target" : "Pick aim target on map"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDraft((list) =>
+                          withHeadings(
+                            (list ?? []).map((w) => ({
+                              ...w,
+                              heading_mode: selected!.heading_mode,
+                              heading: selected!.heading_mode === "fixed" ? selected!.heading : w.heading,
+                              aim_lat: selected!.aim_lat ?? null,
+                              aim_lng: selected!.aim_lng ?? null,
+                            })),
+                          ),
+                        )
+                      }
+                      className="rounded-sm border border-border px-2 py-0.5 font-display text-[10px] uppercase tracking-[0.11em] text-muted-foreground hover:text-foreground"
+                    >
+                      Apply to all waypoints
+                    </button>
+                  </div>
+                  <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                    Drag the round handle on the map to spin the aircraft. A{" "}
+                    <span className="font-mono">rotate_aircraft</span> action is written before every photo or video
+                    action on export, so the aircraft is settled on this heading before capture.
+                  </p>
+                </div>
                 <label className="block sm:col-span-2">
                   <SectionLabel>Label</SectionLabel>
                   <input
