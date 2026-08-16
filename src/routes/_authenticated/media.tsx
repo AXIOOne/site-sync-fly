@@ -36,7 +36,7 @@ function MediaPage() {
   const [projectId, setProjectId] = useState<string | undefined>(search.projectId);
   const activeProject = projectId ?? projects.data?.[0]?.id;
   const media = useQuery({
-    ...mediaQuery({ projectId: activeProject }),
+    ...mediaQuery(activeProject ? { projectId: activeProject } : {}),
     enabled: Boolean(activeProject),
   });
 
